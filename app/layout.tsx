@@ -30,12 +30,12 @@ export default async function RootLayout({
 	return (
 		<html lang="en" className={theme?.value === "dark" ? "dark" : ""}>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased
+				className={`${geistSans.variable} ${geistMono.variable} antialiased 
   bg-white dark:bg-black text-gray-900 dark:text-gray-100
   transition-colors duration-200`}
 			>
 				<Navbar />
-				<div className="container mx-auto px-4 py-6 text-center ">{children}</div>
+				<div className="container mx-auto  text-center ">{children}</div>
 			</body>
 		</html>
 	);

@@ -1,13 +1,16 @@
+import HomeBots from "@/components/homeBots";
+import Getstarted from "@/components/Btn/Getstarted-home";
+
 export default function Home() {
 	return (
 		<div className="h-full bg-gray-100 dark:bg-black transition-colors duration-500">
-			<main className="flex flex-col items-center justify-center text-center md:px-4 md:py-20">
-				<h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl text-gray-900 dark:text-white transition-colors duration-500">
+			<main className="flex flex-col items-center justify-center text-center md:px-4 md:py-20 mt-32">
+				<h1 className="font-extrabold text-5xl md:text-7xl lg:text-8xl text-gray-900 dark:text-white transition-colors duration-500">
 					Optimize Your Images
 				</h1>
-				<h2 className="mt-4 font-semibold text-3xl md:text-5xl lg:text-6xl text-gray-700 dark:text-gray-300 transition-colors duration-500">
-					<span className="text-xl md:text-3xl lg:text-4xl">for</span>{" "}
-					<span className="text-4xl md:text-6xl lg:text-7xl text-blue-500 dark:text-teal-400">
+				<h2 className="mt-4 font-semibold text-4xl md:text-6xl lg:text-7xl text-gray-700 dark:text-gray-300 transition-colors duration-500">
+					<span className="text-2xl md:text-4xl lg:text-5xl">for</span>{" "}
+					<span className="text-5xl md:text-7xl lg:text-8xl text-blue-500 dark:text-teal-400">
 						Free
 					</span>
 				</h2>
@@ -15,9 +18,11 @@ export default function Home() {
 					Efficiently compress and optimize your images without losing quality.
 					Enhance your website&apos;s performance today!
 				</p>
-				<button className="mt-8 px-6 py-3 bg-blue-500 dark:bg-teal-400 text-white dark:text-gray-800 font-semibold rounded-lg shadow-md hover:bg-blue-600 dark:hover:bg-teal-500 transition-colors duration-300">
-					Get Started
-				</button>
+				<Getstarted targetId="homebots" />
+
+				<div className="mt-32" id="homebots">
+					<HomeBots />
+				</div>
 			</main>
 		</div>
 	);

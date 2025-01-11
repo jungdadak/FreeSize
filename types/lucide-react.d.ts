@@ -17,6 +17,8 @@ declare module "lucide-react" {
 	export const Plus: React.FC<IconProps>;
 	export const Sun: React.FC<IconProps>;
 	export const Moon: React.FC<IconProps>;
-
+	export const Upload: React.FC<IconProps>;
+	export const Image: React.FC<IconProps>;
+	export const ChevronsDown: React.FC<IconProps>;
 	// 추가적인 아이콘이 필요하면 여기에 선언하세요.
 }

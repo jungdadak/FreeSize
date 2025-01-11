@@ -15,6 +15,7 @@ export default {
 			},
 			backgroundImage: {
 				"gradient-rainbow": "linear-gradient(to right, #7928CA, #FF0080)",
+				"hero-pattern": "url('/bgtemp.jpg')",
 			},
 		},
 	},
