@@ -1,3 +1,5 @@
+export const dynamic = "force-static";
+
 import HomeBots from "@/components/homeBots";
 import Getstarted from "@/components/Btn/Getstarted-home";
 

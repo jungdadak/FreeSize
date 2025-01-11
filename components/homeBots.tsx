@@ -90,21 +90,13 @@ const HomeBots = () => {
 					<h2 className="text-3xl font-bold text-center mb-12">Before & After</h2>
 					<div className="grid md:grid-cols-2 gap-8">
 						<div className="rounded-lg overflow-hidden bg-white shadow-lg dark:bg-gray-800/50">
-							<img
-								src="/api/placeholder/600/400"
-								alt="Before upscaling"
-								className="w-full"
-							/>
+							<ImageIcon />
 							<p className="text-center mt-2 text-gray-500 dark:text-gray-400">
 								Before
 							</p>
 						</div>
 						<div className="rounded-lg overflow-hidden bg-white shadow-lg dark:bg-gray-800/50">
-							<img
-								src="/api/placeholder/600/400"
-								alt="After upscaling"
-								className="w-full"
-							/>
+							<ImageIcon />
 							<p className="text-center mt-2 text-gray-500 dark:text-gray-400">
 								After
 							</p>
