@@ -17,7 +17,7 @@ export default function Home() {
 				</h2>
 				<p className="mt-6 text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl">
 					Efficiently compress and optimize your images without losing quality.
-					Enhance your website's performance today!
+					Enhance your website&apos;s performance today!
 				</p>
 				<button className="mt-8 px-6 py-3 bg-blue-500 dark:bg-teal-400 text-white dark:text-gray-800 font-semibold rounded-lg shadow-md hover:bg-blue-600 dark:hover:bg-teal-500 transition-colors duration-300">
 					Get Started
