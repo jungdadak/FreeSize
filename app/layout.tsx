@@ -31,7 +31,7 @@ export default async function RootLayout({
 		<html lang="en" className={theme?.value === "dark" ? "dark" : ""}>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased
-  bg-white dark:bg-[#111111] text-gray-900 dark:text-gray-100
+  bg-white dark:bg-black text-gray-900 dark:text-gray-100
   transition-colors duration-200`}
 			>
 				<Navbar />

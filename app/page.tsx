@@ -1,10 +1,6 @@
 export default function Home() {
 	return (
-		<div className="min-h-screen bg-gray-100 dark:bg-black transition-colors duration-500">
-			<header className="flex justify-end p-4">
-				{/* 다크 모드 토글 버튼이 부모에서 관리되므로 여기서는 생략 */}
-			</header>
-
+		<div className="h-full bg-gray-100 dark:bg-black transition-colors duration-500">
 			<main className="flex flex-col items-center justify-center text-center md:px-4 md:py-20">
 				<h1 className="font-extrabold text-4xl md:text-6xl lg:text-7xl text-gray-900 dark:text-white transition-colors duration-500">
 					Optimize Your Images
