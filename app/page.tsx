@@ -1,6 +1,6 @@
 export default function Home() {
 	return (
-		<div className="min-h-screen bg-white dark:bg-black transition-colors duration-500">
+		<div className="min-h-screen bg-gray-100 dark:bg-black transition-colors duration-500">
 			<header className="flex justify-end p-4">
 				{/* 다크 모드 토글 버튼이 부모에서 관리되므로 여기서는 생략 */}
 			</header>

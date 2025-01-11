@@ -16,7 +16,7 @@ export default function Navbar() {
 			<header
 				className="fixed top-0 inset-x-0 h-16 z-50
         bg-white dark:bg-[#111111]
-        border-b border-gray-100 dark:border-gray-800
+      
         transition-colors duration-200"
 			>
 				<div
