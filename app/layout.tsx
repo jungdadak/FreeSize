@@ -25,17 +25,19 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const theme = (await cookies()).get("theme");
+	const themeFromCookie = (await cookies()).get("theme");
+	// 쿠키가 없으면 'dark'를 기본값으로 사용
+	const theme = themeFromCookie?.value || "dark";
 
 	return (
-		<html lang="en" className={theme?.value === "dark" ? "dark" : ""}>
+		<html lang="en" className={theme === "dark" ? "dark" : ""}>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased 
-  bg-white dark:bg-black text-gray-900 dark:text-gray-100
-  transition-colors duration-200`}
+        bg-white dark:bg-black text-gray-900 dark:text-gray-100
+        transition-colors duration-200`}
 			>
 				<Navbar />
-				<div className="container mx-auto  text-center ">{children}</div>
+				<div className="container mx-auto text-center">{children}</div>
 			</body>
 		</html>
 	);
