@@ -1,7 +1,6 @@
-// components/Navbar/MobileNav.tsx
 'use client';
 
-import { Menu, X, Home, User, LogIn, Plus } from 'lucide-react';
+import { Menu, X, ArrowUpLeft, Home, User, LogIn, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
@@ -31,11 +30,14 @@ export default function MobileNav() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg
-          transition-colors duration-200"
+        className="md:hidden p-2 rounded-lg transition-colors duration-400"
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? (
+          <X className="hover:bg-gray-100 dark:hover:bg-gray-800 w-8 h-8 border border-gray-500 rounded-md p-1" />
+        ) : (
+          <Menu className="hover:bg-gray-100 dark:hover:bg-gray-800 w-8 h-8 p-1 rounded-md" />
+        )}
       </button>
 
       {/* Mobile Dropdown Menu */}
@@ -43,30 +45,17 @@ export default function MobileNav() {
         className={`
           fixed inset-x-0 top-16 md:hidden
           bg-white dark:bg-[#111111]
-          transition-all duration-300 ease-in-out
+          transition-all duration-500 ease-out
           ${
             isOpen
-              ? 'h-[calc(100vh-4rem)] opacity-100'
-              : 'h-0 opacity-0 pointer-events-none'
+              ? 'translate-y-0 opacity-100 visible scale-y-100'
+              : '-translate-y-5 opacity-0 invisible scale-y-95'
           }
         `}
       >
-        {/* Close button at top */}
-        <div className="absolute top-4 right-4">
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800
-              hover:bg-gray-200 dark:hover:bg-gray-700
-              transition-colors duration-200"
-            aria-label="Close menu"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
         {/* Centered Navigation Links */}
-        <nav className="h-full flex flex-col justify-center items-center px-6">
-          <ul className="flex flex-col items-center gap-8">
+        <nav className="h-full flex flex-col items-center px-6 pt-20 pb-32">
+          <ul className="flex flex-col items-center gap-8 mb-12">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
@@ -80,6 +69,21 @@ export default function MobileNav() {
               </li>
             ))}
           </ul>
+
+          {/* Close Menu Icon Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="absolute bottom-0 right-8
+              w-14 h-14 
+              rounded-full
+              flex items-center justify-center
+              shadow-lg hover:shadow-xl
+              transform hover:scale-110 active:scale-95
+              transition-all duration-200"
+            aria-label="Close menu"
+          >
+            <ArrowUpLeft />
+          </button>
         </nav>
       </div>
 
