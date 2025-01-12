@@ -33,26 +33,37 @@ export default function UploadPage() {
       setIsUploading(true); // 업로드 시작 시 상태 업데이트
 
       // 1. 사전 서명된 URL 요청
+      // 1. presigned URL 요청 디버깅
       const filename = encodeURIComponent(file.name);
+      console.log('Requesting presigned URL for:', filename);
       const res = await fetch('/api/image?file=' + filename, {
         method: 'GET',
       });
       const presignedData = (await res.json()) as PresignedPostResponse;
+      console.log('Received presigned data:', presignedData);
 
-      // 2. S3로 파일 업로드
+      // 2. S3 업로드 디버깅
       const formData = new FormData();
       Object.entries({ ...presignedData.fields, file }).forEach(
         ([key, value]) => {
           formData.append(key, value);
+          console.log('FormData field:', key, typeof value);
         }
       );
+      console.log('Uploading to URL:', presignedData.url);
+
       const uploadResult = await fetch(presignedData.url, {
         method: 'POST',
         body: formData,
       });
+      console.log('Upload result status:', uploadResult.status);
 
       if (!uploadResult.ok) {
-        throw new Error('Failed to upload to S3');
+        const errorText = await uploadResult.text();
+        console.error('Upload error response:', errorText);
+        throw new Error(
+          `Failed to upload to S3: ${uploadResult.status} ${errorText}`
+        );
       }
 
       // 3. Next.js API 라우트를 통해 Spring 백엔드에 업로드 정보 전달

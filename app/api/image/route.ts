@@ -33,19 +33,30 @@ export async function GET(request: NextRequest) {
   });
 
   try {
+    console.log('S3 config:', {
+      region: 'ap-northeast-2',
+      bucket: process.env.BUCKET_NAME,
+      key: uniqueFileName,
+    });
+
     const url = await createPresignedPost(s3Client, {
       Bucket: process.env.BUCKET_NAME!,
-      Key: uniqueFileName, // 변경된 파일명 사용
-      Fields: { key: uniqueFileName }, // 여기도 변경
+      Key: uniqueFileName,
+      Fields: { key: uniqueFileName },
       Expires: 60,
       Conditions: [['content-length-range', 0, 10485760]],
     });
 
+    console.log('Generated presigned URL:', {
+      url: url.url,
+      fieldCount: Object.keys(url.fields).length,
+    });
+
     return NextResponse.json(url);
   } catch (error) {
-    console.error('Error generating presigned URL:', error);
+    console.error('Detailed presigned URL error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate upload URL' },
+      { error: 'Failed to generate upload URL', details: error.message },
       { status: 500 }
     );
   }
