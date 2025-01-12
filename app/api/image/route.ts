@@ -56,7 +56,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Detailed presigned URL error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate upload URL', details: error.message },
+      {
+        error: 'Failed to generate upload URL',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
