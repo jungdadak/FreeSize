@@ -6,6 +6,12 @@ import { ArrowLeft, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 
 export default function UploadPage() {
+  interface PresignedPostResponse {
+    url: string;
+    fields: {
+      [key: string]: string; // 어떤 문자열 키든 받을 수 있음
+    };
+  }
   const router = useRouter();
   const file = useFileStore((state) => state.file);
   const previewUrl = useFileStore((state) => state.previewUrl);
@@ -23,17 +29,49 @@ export default function UploadPage() {
 
   const handleProcess = async () => {
     if (!file || !selectedMethod) return;
-
     try {
-      setIsUploading(true);
-      setError('');
+      const filename = encodeURIComponent(file.name);
+      const res = await fetch('/api/image?file=' + filename, {
+        method: 'GET',
+      });
+      const presignedData = (await res.json()) as PresignedPostResponse;
+      const formData = new FormData();
+      Object.entries({ ...presignedData.fields, file }).forEach(
+        ([key, value]) => {
+          formData.append(key, value);
+        }
+      );
+      const uploadResult = await fetch(presignedData.url, {
+        method: 'POST',
+        body: formData,
+      });
+      console.log(uploadResult);
 
-      // 여기서 나중에 S3 업로드 로직이 들어갈 예정
-      router.push(`/transform?method=${selectedMethod}`);
-    } catch {
-      setError('Failed to start processing');
+      if (uploadResult.ok) {
+        router.push(`/transform?method=${selectedMethod}`);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError(
+        error instanceof Error ? error.message : 'An unknown error occurred'
+      );
+    } finally {
       setIsUploading(false);
     }
+    //TODO
+    //3. backend에 s3 주소와 method인자 전달!
+    // try {
+    //   setIsUploading(true);
+    //   setError('');
+
+    //   // 여기서 나중에 S3 업로드 로직이 들어갈 예정
+    //   router.push(`/transform?method=${selectedMethod}`);
+    // } catch {
+    //   setError('Failed to start processing');
+    //   setIsUploading(false);
+    // }
   };
 
   const handleCancel = () => {
