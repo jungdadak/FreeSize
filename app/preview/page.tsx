@@ -30,11 +30,16 @@ export default function UploadPage() {
   const handleProcess = async () => {
     if (!file || !selectedMethod) return;
     try {
+      setIsUploading(true); // 업로드 시작 시 상태 업데이트
+
+      // 1. 사전 서명된 URL 요청
       const filename = encodeURIComponent(file.name);
       const res = await fetch('/api/image?file=' + filename, {
         method: 'GET',
       });
       const presignedData = (await res.json()) as PresignedPostResponse;
+
+      // 2. S3로 파일 업로드
       const formData = new FormData();
       Object.entries({ ...presignedData.fields, file }).forEach(
         ([key, value]) => {
@@ -45,33 +50,41 @@ export default function UploadPage() {
         method: 'POST',
         body: formData,
       });
-      console.log(uploadResult);
 
-      if (uploadResult.ok) {
-        router.push(`/transform?method=${selectedMethod}`);
-      } else {
-        throw new Error('Upload failed');
+      if (!uploadResult.ok) {
+        throw new Error('Failed to upload to S3');
       }
+
+      // 3. Next.js API 라우트를 통해 Spring 백엔드에 업로드 정보 전달
+      const springResponse = await fetch('/api/image/tospring', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          s3Key: presignedData.fields.key, // S3에 업로드된 파일의 키
+          method: selectedMethod, // 선택된 처리 방법
+          originalFileName: file.name, // 원본 파일명
+        }),
+      });
+
+      if (!springResponse.ok) {
+        const errorData = await springResponse.json();
+        throw new Error(errorData.error || 'Failed to initiate processing');
+      }
+
+      // Step 4: 변환 페이지로 리다이렉트
+      router.push(`/transform?method=${selectedMethod}`);
     } catch (error) {
       console.error('Error:', error);
       setError(
-        error instanceof Error ? error.message : 'An unknown error occurred'
+        error instanceof Error
+          ? error.message
+          : '알 수 없는 오류가 발생했습니다'
       );
     } finally {
       setIsUploading(false);
     }
-    //TODO
-    //3. backend에 s3 주소와 method인자 전달!
-    // try {
-    //   setIsUploading(true);
-    //   setError('');
-
-    //   // 여기서 나중에 S3 업로드 로직이 들어갈 예정
-    //   router.push(`/transform?method=${selectedMethod}`);
-    // } catch {
-    //   setError('Failed to start processing');
-    //   setIsUploading(false);
-    // }
   };
 
   const handleCancel = () => {

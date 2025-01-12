@@ -13,6 +13,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // 클라이언트 IP 가져오기
+  const forwarded = request.headers.get('x-forwarded-for');
+  const clientIp = forwarded
+    ? forwarded.split(',')[0]
+    : request.headers.get('x-real-ip');
+  const uuid = crypto.randomUUID();
+  const timestamp = Date.now();
+
+  // 새로운 파일명 생성: IP-UUID-타임스탬프-원본파일명
+  const uniqueFileName = `${clientIp}-${uuid}-${timestamp}-${fileName}`;
+
   const s3Client = new S3Client({
     region: 'ap-northeast-2',
     credentials: {
@@ -24,10 +35,10 @@ export async function GET(request: NextRequest) {
   try {
     const url = await createPresignedPost(s3Client, {
       Bucket: process.env.BUCKET_NAME!,
-      Key: fileName,
-      Fields: { key: fileName },
+      Key: uniqueFileName, // 변경된 파일명 사용
+      Fields: { key: uniqueFileName }, // 여기도 변경
       Expires: 60,
-      Conditions: [['content-length-range', 0, 10485760]], // Max 1MB
+      Conditions: [['content-length-range', 0, 10485760]],
     });
 
     return NextResponse.json(url);

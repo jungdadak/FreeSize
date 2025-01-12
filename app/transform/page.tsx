@@ -1,40 +1,41 @@
+// TODO!!
 'use client';
-import { useRouter } from 'next/navigation';
-import { useFileStore } from '@/store/fileStore';
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Loader2, Download } from 'lucide-react';
+// import { useRouter } from 'next/navigation';
+// import { useFileStore } from '@/store/fileStore';
+// import { useEffect, useState } from 'react';
+// import Image from 'next/image';
+// import { Loader2, Download } from 'lucide-react';
 export default function ProcessPage() {
-  const router = useRouter();
-  const file = useFileStore((state) => state.file);
-  const previewUrl = useFileStore((state) => state.previewUrl);
+  // const router = useRouter();
+  // const file = useFileStore((state) => state.file);
+  // const previewUrl = useFileStore((state) => state.previewUrl);
 
-  const [status, setStatus] = useState('processing'); // 'processing' | 'complete' | 'error'
-  const [processedImageUrl, setProcessedImageUrl] = useState('');
-  const [error, setError] = useState('');
+  // const [status, setStatus] = useState('processing'); // 'processing' | 'complete' | 'error'
+  // const [processedImageUrl, setProcessedImageUrl] = useState('');
+  // const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!file || !previewUrl) {
-      router.push('/');
-      return;
-    }
+  // useEffect(() => {
+  //   if (!file || !previewUrl) {
+  //     router.push('/');
+  //     return;
+  //   }
 
-    // 여기에 실제 처리 로직 추가 예정
+  //   // 여기에 실제 처리 로직 추가 예정
 
-    return () => {
-      if (processedImageUrl) {
-        URL.revokeObjectURL(processedImageUrl);
-      }
-    };
-  }, [file, previewUrl, router]);
+  //   return () => {
+  //     if (processedImageUrl) {
+  //       URL.revokeObjectURL(processedImageUrl);
+  //     }
+  //   };
+  // }, [file, previewUrl, router]);
 
-  if (!file || !previewUrl) {
-    return null;
-  }
+  // if (!file || !previewUrl) {
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="max-w-6xl mx-auto px-4">
+      {/* <div className="max-w-6xl mx-auto px-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
           {status === 'processing' && (
             <div className="text-center py-12">
@@ -105,7 +106,7 @@ export default function ProcessPage() {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
