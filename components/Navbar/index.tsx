@@ -8,7 +8,7 @@ import SignIn from '../Btn/sign-in';
 const navItems = [
   { href: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
-  { href: '/login', label: 'Login', icon: <LogIn className="w-5 h-5" /> },
+  { href: '/auth/login', label: 'Login', icon: <LogIn className="w-5 h-5" /> },
 ];
 
 export default function Navbar() {
