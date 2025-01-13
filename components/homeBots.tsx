@@ -27,7 +27,10 @@ const HomeBots = () => {
           </div>
         </div>
       </div>
-      <DragDrop />
+      <div className="-mt-20">
+        {' '}
+        <DragDrop />
+      </div>
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 -mt-20 md:mt-20">
         {/* Features Section */}
