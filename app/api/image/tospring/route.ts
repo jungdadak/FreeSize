@@ -1,16 +1,11 @@
 // app/api/image/tospring/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
+import type { APIResponse, SpringProcessRequest } from '@/types';
 
-// POST 메서드 핸들러
 export async function POST(request: NextRequest) {
   try {
-    const { s3Key, method, originalFileName } = await request.json();
+    const body = (await request.json()) as SpringProcessRequest;
 
-    // 데이터 수신 확인을 위한 로그
-    console.log('Received data:', { s3Key, method, originalFileName });
-
-    // Spring 서버로 요청을 보내는 로직 추가 (현재는 Mock 서버로 설정)
     const springResponse = await fetch(
       `${process.env.SPRING_API_URL}/process-image`,
       {
@@ -18,28 +13,34 @@ export async function POST(request: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          s3Key,
-          method,
-          originalFileName,
-        }),
+        body: JSON.stringify(body),
       }
     );
 
     if (!springResponse.ok) {
       const errorData = await springResponse.json();
-      return NextResponse.json(
-        { error: errorData.error || 'Spring 서버 에러' },
+      return NextResponse.json<APIResponse>(
+        {
+          success: false,
+          error: errorData.error || 'Spring 서버 에러',
+        },
         { status: springResponse.status }
       );
     }
 
     const data = await springResponse.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json<APIResponse>({
+      success: true,
+      data,
+    });
   } catch (error) {
     console.error('Error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
+    return NextResponse.json<APIResponse>(
+      {
+        success: false,
+        error: 'Internal Server Error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

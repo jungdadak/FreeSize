@@ -1,112 +1,161 @@
-// TODO!!
 'use client';
-// import { useRouter } from 'next/navigation';
-// import { useFileStore } from '@/store/fileStore';
-// import { useEffect, useState } from 'react';
-// import Image from 'next/image';
-// import { Loader2, Download } from 'lucide-react';
-export default function ProcessPage() {
-  // const router = useRouter();
-  // const file = useFileStore((state) => state.file);
-  // const previewUrl = useFileStore((state) => state.previewUrl);
 
-  // const [status, setStatus] = useState('processing'); // 'processing' | 'complete' | 'error'
-  // const [processedImageUrl, setProcessedImageUrl] = useState('');
-  // const [error, setError] = useState('');
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { useTransform } from '@/hooks/useTransform';
 
-  // useEffect(() => {
-  //   if (!file || !previewUrl) {
-  //     router.push('/');
-  //     return;
-  //   }
+interface LogEntry {
+  message: string;
+  timestamp: string;
+  type: 'info' | 'success' | 'error';
+}
 
-  //   // 여기에 실제 처리 로직 추가 예정
+export default function TransformPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  //   return () => {
-  //     if (processedImageUrl) {
-  //       URL.revokeObjectURL(processedImageUrl);
-  //     }
-  //   };
-  // }, [file, previewUrl, router]);
+  // URL에서 데이터 파싱
+  const encodedData = searchParams.get('data');
+  const transformData = encodedData
+    ? JSON.parse(decodeURIComponent(encodedData))
+    : null;
 
-  // if (!file || !previewUrl) {
-  //   return null;
-  // }
+  // 로그 메시지 상태 추가
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+
+  // onLog 함수를 useCallback으로 메모이제이션
+  const logHandler = useCallback(
+    (message: string, type: LogEntry['type'] = 'info') => {
+      setLogs((prev) => [
+        ...prev,
+        {
+          message,
+          timestamp: new Date().toLocaleTimeString(),
+          type,
+        },
+      ]);
+    },
+    []
+  );
+
+  // useTransform 훅에 로그 업데이트 함수 전달
+  const { status, handleRetry } = useTransform(transformData, logHandler);
+
+  useEffect(() => {
+    if (!transformData) {
+      router.push('/');
+    }
+  }, [transformData, router]);
+
+  if (!transformData) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      {/* <div className="max-w-6xl mx-auto px-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
-          {status === 'processing' && (
-            <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-500" />
-              <h2 className="text-xl font-semibold mb-2">
-                Processing Your Image
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                This may take a few moments...
-              </p>
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-50 dark:bg-black py-12">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white dark:bg-gray-950 rounded-lg shadow-sm p-8">
+          {/* 상태 표시 UI */}
+          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
+            {/* 업로드 중 */}
+            {status.stage === 'uploading' && (
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">
+                  이미지 업로드 중...
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  파일을 서버에 업로드하고 있습니다.
+                </p>
+              </div>
+            )}
 
-          {status === 'complete' && (
-            <div className="space-y-8">
-              <h2 className="text-2xl font-semibold mb-6">Results</h2>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Original Image</h3>
-                  <div className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    <Image
-                      src={previewUrl}
-                      alt="Original"
-                      className="w-full object-contain max-h-[500px]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Processed Image</h3>
-                  <div className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    <Image
-                      src={processedImageUrl}
-                      alt="Processed"
-                      className="w-full object-contain max-h-[500px]"
-                    />
-                  </div>
+            {/* 처리 중 */}
+            {status.stage === 'processing' && (
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">
+                  이미지 처리 중...
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  AI 모델이 이미지를 처리하고 있습니다.
+                </p>
+              </div>
+            )}
+
+            {/* 완료 */}
+            {status.stage === 'completed' && (
+              <div className="text-center">
+                <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-4">처리 완료!</h2>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => (window.location.href = '결과 이미지 URL')} // TODO: 실제 URL 추가
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  >
+                    결과 다운로드
+                  </button>
+                  <button
+                    onClick={() => router.push('/')}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 block mx-auto"
+                  >
+                    홈으로 돌아가기
+                  </button>
                 </div>
               </div>
-              <div className="flex justify-center gap-4 pt-6">
-                <button
-                  onClick={() => router.push('/')}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Process Another Image
-                </button>
-                <button
-                  onClick={() => window.open(processedImageUrl, '_blank')}
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-lg flex items-center"
-                >
-                  <Download className="w-5 h-5 mr-2" />
-                  Download Result
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {status === 'error' && (
-            <div className="text-center py-12">
-              <div className="text-red-500 mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold mb-2">Processing Failed</h2>
-              <p className="text-red-500 dark:text-red-400 mb-6">{error}</p>
-              <button
-                onClick={() => router.back()}
-                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg"
-              >
-                Try Again
-              </button>
+            {/* 실패 */}
+            {status.stage === 'failed' && (
+              <div className="text-center">
+                <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2 text-red-600">
+                  처리 실패
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {status.error}
+                </p>
+                <div className="space-y-4">
+                  <button
+                    onClick={handleRetry}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center space-x-2 mx-auto"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>다시 시도</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/')}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400"
+                  >
+                    홈으로 돌아가기
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 로그 창 추가 */}
+          <div className="mt-8 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 h-48 overflow-y-auto">
+            <h3 className="text-sm font-semibold mb-2">진행 상태</h3>
+            <div className="space-y-1">
+              {logs.map((log, index) => (
+                <div
+                  key={index}
+                  className={`text-sm flex items-center space-x-2 ${
+                    log.type === 'error'
+                      ? 'text-red-600'
+                      : log.type === 'success'
+                      ? 'text-green-600'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  <span className="text-xs text-gray-400">{log.timestamp}</span>
+                  <span>{log.message}</span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }

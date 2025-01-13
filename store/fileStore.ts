@@ -1,19 +1,17 @@
 import { create } from 'zustand';
+import { FileState } from '@/types';
 
-interface FileState {
-  file: File | null;
-  previewUrl: string | null;
-  setFile: (file: File | null) => void;
-  setPreviewUrl: (url: string | null) => void;
-  clearFile: () => void;
-  resetFileStore: () => void;
-}
-
-export const useFileStore = create<FileState>()((set) => ({
+const initialState = {
   file: null,
   previewUrl: null,
+  uploadStatus: { stage: 'idle' as const },
+};
+
+export const useFileStore = create<FileState>()((set) => ({
+  ...initialState,
   setFile: (file) => set({ file }),
   setPreviewUrl: (url) => set({ previewUrl: url }),
-  clearFile: () => set({ file: null, previewUrl: null }),
-  resetFileStore: () => set({ file: null, previewUrl: null }),
+  setUploadStatus: (status) =>
+    set((state) => ({ uploadStatus: { ...state.uploadStatus, ...status } })),
+  resetFileStore: () => set(initialState),
 }));

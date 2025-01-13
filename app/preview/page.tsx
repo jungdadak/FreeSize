@@ -1,102 +1,24 @@
+// app/upload/page.tsx
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { useFileStore } from '@/store/fileStore';
-import { useState, useEffect } from 'react';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { PROCESS_METHODS } from '@/lib/constants';
 import { ArrowLeft, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 export default function UploadPage() {
-  interface PresignedPostResponse {
-    url: string;
-    fields: {
-      [key: string]: string; // 어떤 문자열 키든 받을 수 있음
-    };
-  }
   const router = useRouter();
-  const file = useFileStore((state) => state.file);
-  const previewUrl = useFileStore((state) => state.previewUrl);
-  const resetFileStore = useFileStore((state) => state.resetFileStore);
-
-  const [selectedMethod, setSelectedMethod] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState('');
+  const { file, previewUrl, uploadStatus, resetFileStore } = useFileStore();
+  const { selectedMethod, setSelectedMethod, handleProcess } = useFileUpload();
 
   useEffect(() => {
     if (!file || !previewUrl) {
       router.push('/');
     }
   }, [file, previewUrl, router]);
-
-  const handleProcess = async () => {
-    if (!file || !selectedMethod) return;
-    try {
-      setIsUploading(true); // 업로드 시작 시 상태 업데이트
-
-      // 1. 사전 서명된 URL 요청
-      // 1. presigned URL 요청 디버깅
-      const filename = encodeURIComponent(file.name);
-      console.log('Requesting presigned URL for:', filename);
-      const res = await fetch('/api/image?file=' + filename, {
-        method: 'GET',
-      });
-      const presignedData = (await res.json()) as PresignedPostResponse;
-      console.log('Received presigned data:', presignedData);
-
-      // 2. S3 업로드 디버깅
-      const formData = new FormData();
-      Object.entries({ ...presignedData.fields, file }).forEach(
-        ([key, value]) => {
-          formData.append(key, value);
-          console.log('FormData field:', key, typeof value);
-        }
-      );
-      console.log('Uploading to URL:', presignedData.url);
-
-      const uploadResult = await fetch(presignedData.url, {
-        method: 'POST',
-        body: formData,
-      });
-      console.log('Upload result status:', uploadResult.status);
-
-      if (!uploadResult.ok) {
-        const errorText = await uploadResult.text();
-        console.error('Upload error response:', errorText);
-        throw new Error(
-          `Failed to upload to S3: ${uploadResult.status} ${errorText}`
-        );
-      }
-
-      // 3. Next.js API 라우트를 통해 Spring 백엔드에 업로드 정보 전달
-      const springResponse = await fetch('/api/image/tospring', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          s3Key: presignedData.fields.key, // S3에 업로드된 파일의 키
-          method: selectedMethod, // 선택된 처리 방법
-          originalFileName: file.name, // 원본 파일명
-        }),
-      });
-
-      if (!springResponse.ok) {
-        const errorData = await springResponse.json();
-        throw new Error(errorData.error || 'Failed to initiate processing');
-      }
-
-      // Step 4: 변환 페이지로 리다이렉트
-      router.push(`/transform?method=${selectedMethod}`);
-    } catch (error) {
-      console.error('Error:', error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : '알 수 없는 오류가 발생했습니다'
-      );
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleCancel = () => {
     if (previewUrl) {
@@ -109,6 +31,9 @@ export default function UploadPage() {
   if (!file || !previewUrl) {
     return null;
   }
+
+  console.log('uploadStatus:', uploadStatus);
+  console.log('selectedMethod:', selectedMethod);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black py-12">
@@ -156,31 +81,28 @@ export default function UploadPage() {
                     Select Process Method
                   </h3>
                   <div className="space-y-3">
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="radio"
-                        value="method1"
-                        checked={selectedMethod === 'method1'}
-                        onChange={(e) => setSelectedMethod(e.target.value)}
-                        className="w-4 h-4 text-purple-600"
-                      />
-                      <span>Method 1</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="radio"
-                        value="method2"
-                        checked={selectedMethod === 'method2'}
-                        onChange={(e) => setSelectedMethod(e.target.value)}
-                        className="w-4 h-4 text-purple-600"
-                      />
-                      <span>Method 2</span>
-                    </label>
+                    {PROCESS_METHODS.map((method) => (
+                      <label
+                        key={method.id}
+                        className="flex items-center space-x-3"
+                      >
+                        <input
+                          type="radio"
+                          value={method.id}
+                          checked={selectedMethod === method.id}
+                          onChange={(e) => setSelectedMethod(e.target.value)}
+                          className="w-4 h-4 text-purple-600"
+                        />
+                        <span>{method.label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
-                {error && (
-                  <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
+                {uploadStatus.error && (
+                  <p className="text-red-500 dark:text-red-400 mb-4">
+                    {uploadStatus.error}
+                  </p>
                 )}
               </div>
 
@@ -188,22 +110,22 @@ export default function UploadPage() {
                 <button
                   onClick={handleCancel}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  disabled={isUploading}
+                  disabled={uploadStatus.stage !== 'idle'}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleProcess}
-                  disabled={isUploading || !selectedMethod}
+                  disabled={uploadStatus.stage !== 'idle' || !selectedMethod}
                   className="px-4 py-2 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-lg flex items-center disabled:opacity-50"
                 >
-                  {isUploading ? (
+                  {uploadStatus.stage === 'getting-url' ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Processing...
+                      Getting ready...
                     </>
                   ) : (
-                    'Process Image'
+                    'Start Processing'
                   )}
                 </button>
               </div>

@@ -31,6 +31,8 @@ declare module 'lucide-react' {
   export const Info: React.FC<IconProps>;
   export const XCircle: React.FC<IconProps>;
   export const CheckCircle2: React.FC<IconProps>;
+  export const CheckCircle: React.FC<IconProps>;
+  export const RefreshCw: React.FC<IconProps>;
 
   // 추가적인 아이콘이 필요하면 여기에 선언하세요.
 }
