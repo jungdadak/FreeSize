@@ -1,6 +1,15 @@
 'use client';
 
-import { Menu, X, ArrowUpLeft, Home, User, LogIn, Plus } from 'lucide-react';
+import {
+  Menu,
+  X,
+  ArrowUpLeft,
+  Home,
+  User,
+  LogIn,
+  Plus,
+  RocketIcon,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
@@ -11,6 +20,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  {
+    href: '/quickstart',
+    label: 'Quick Start',
+    icon: <RocketIcon className="w-8 h-8 bg-red-600 p-1 rounded-md" />,
+  },
   { href: '/', label: 'Home', icon: <Home className="w-6 h-6" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-6 h-6" /> },
   { href: '/auth/login', label: 'Login', icon: <LogIn className="w-6 h-6" /> },

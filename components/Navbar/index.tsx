@@ -4,9 +4,16 @@ import Link from 'next/link';
 import DarkModeToggler from '../DarkModeToggler';
 import MobileNav from './MobileNav';
 import SignIn from '../Btn/sign-in';
+import { RocketIcon } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
+  {
+    href: '/quickstart',
+    label: 'Quick Start',
+    icon: <RocketIcon className="w-5 h-5" />,
+  },
+
+  { href: '/', label: 'Home', icon: <Home className="w-8 h-8" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
   { href: '/auth/login', label: 'Login', icon: <LogIn className="w-5 h-5" /> },
 ];
