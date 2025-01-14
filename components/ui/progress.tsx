@@ -6,7 +6,7 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 const Progress = React.forwardRef<
 	React.ElementRef<typeof ProgressPrimitive.Root>,
 	React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
+>(({ value, ...props }, ref) => (
 	<ProgressPrimitive.Root
 		ref={ref}
 		className="relative overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800"

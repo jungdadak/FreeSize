@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useFileStore } from "@/store/fileStore";
 import { MAX_FILE_SIZE, ALLOWED_TYPES } from "@/lib/constants";
 import type { PresignedPostResponse, APIResponse } from "@/types";
-import type { ProcessingOptions } from "@/types/processing";
+import type { ProcessingOptions } from "@/types/transform";
 
 export const useFileUpload = () => {
 	const router = useRouter();

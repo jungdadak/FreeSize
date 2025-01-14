@@ -10,8 +10,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Image from "next/image";
 import { useEffect } from "react";
 import { getImageDimensions, formatDimensions } from "@/utils/image";
-import type { ImageDimensions } from "@/utils/image";
-import type { ProcessingMethod, ProcessingOptions } from "@/types/processing";
+// import type { ImageDimensions } from "@/utils/image";
+import type { ProcessingMethod } from "@/types/transform";
 
 export default function PreviewPage() {
 	const router = useRouter();
@@ -74,7 +74,7 @@ export default function PreviewPage() {
 
 	const handleMethodToggle = (methodId: ProcessingMethod["id"]) => {
 		// Toggle the method in selectedMethods
-		let updatedMethods = [...selectedMethods];
+		const updatedMethods = [...selectedMethods];
 		const methodIndex = updatedMethods.findIndex((m) => m.id === methodId);
 		if (methodIndex > -1) {
 			// Toggle enabled
@@ -99,7 +99,7 @@ export default function PreviewPage() {
 					uncrop: { aspectRatio: "1:1" },
 				});
 			} else {
-				const { uncrop, ...rest } = processingOptions;
+				const { ...rest } = processingOptions;
 				setProcessingOptions(rest);
 			}
 		} else if (methodId === "upscale") {
@@ -112,7 +112,7 @@ export default function PreviewPage() {
 					},
 				});
 			} else {
-				const { upscale, ...rest } = processingOptions;
+				const { ...rest } = processingOptions;
 				setProcessingOptions(rest);
 			}
 		}

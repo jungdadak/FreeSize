@@ -4,11 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { XCircle } from "lucide-react";
 import { useTransform } from "@/hooks/useTransform";
-import {
-	TransformData,
-	ProcessStatus,
-	ProcessingOptions,
-} from "@/types/transform";
+import { TransformData, ProcessingOptions } from "@/types/transform";
 import { Stepper } from "@/components/ui/Stepper";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { CompletedSection } from "@/components/ui/CompletedSection";
@@ -23,7 +19,6 @@ interface LogEntry {
 export default function TransformPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const [currentProgress, setCurrentProgress] = useState(0);
 	const [latestLog, setLatestLog] = useState<LogEntry | null>(null);
 	const [parseError, setParseError] = useState<string | null>(null);
 	const [transformData, setTransformData] = useState<TransformData | null>(null);

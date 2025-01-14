@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { UploadStatus } from "@/types";
 import type { ImageDimensions } from "@/utils/image";
-import type { ProcessingMethod, ProcessingOptions } from "@/types/processing";
+import type { ProcessingMethod, ProcessingOptions } from "@/types/transform";
 
 export interface FileState {
 	file: File | null;

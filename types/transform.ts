@@ -34,3 +34,8 @@ export interface SpringErrorResponse {
 	error?: string;
 	// Add other fields if necessary
 }
+export interface ProcessingMethod {
+	id: "uncrop" | "upscale";
+	label: string;
+	enabled: boolean;
+}
