@@ -1,10 +1,10 @@
 // components/Navbar/index.tsx
-import { Home, User, LogIn } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 import Link from 'next/link';
 import DarkModeToggler from '../DarkModeToggler';
 import MobileNav from './MobileNav';
-import SignIn from '../Btn/sign-in';
 import { RocketIcon } from 'lucide-react';
+import SignInButton from '../Btn/SignInButton';
 
 const navItems = [
   {
@@ -15,7 +15,6 @@ const navItems = [
 
   { href: '/', label: 'Home', icon: <Home className="w-8 h-8" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
-  { href: '/auth/login', label: 'Login', icon: <LogIn className="w-5 h-5" /> },
 ];
 
 export default function Navbar() {
@@ -37,7 +36,6 @@ export default function Navbar() {
               PicOps
             </span>
           </Link>
-          <SignIn />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
@@ -54,6 +52,7 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
+            <SignInButton />
             <DarkModeToggler />
           </nav>
 

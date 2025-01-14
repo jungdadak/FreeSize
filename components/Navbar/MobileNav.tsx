@@ -1,16 +1,17 @@
 'use client';
-
+import SignInButton from '../Btn/SignInButton';
+import { useRef } from 'react';
+import { useBlobUpload } from '@/hooks/useBlobUpload';
 import {
   Menu,
   X,
   ArrowUpLeft,
   Home,
   User,
-  LogIn,
   Plus,
   RocketIcon,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 
 interface NavItem {
@@ -27,16 +28,28 @@ const navItems: NavItem[] = [
   },
   { href: '/', label: 'Home', icon: <Home className="w-6 h-6" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-6 h-6" /> },
-  { href: '/auth/login', label: 'Login', icon: <LogIn className="w-6 h-6" /> },
 ];
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { handleFileUpload } = useBlobUpload();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const onUploadClick = () => {
+    inputRef.current?.click();
+  };
 
   if (!mounted) return null;
 
@@ -54,6 +67,15 @@ export default function MobileNav() {
         )}
       </button>
 
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={inputRef}
+        className="hidden"
+        onChange={handleChange}
+        accept="image/jpeg,image/png"
+      />
+
       {/* Mobile Dropdown Menu */}
       <div
         className={`
@@ -67,7 +89,6 @@ export default function MobileNav() {
           }
         `}
       >
-        {/* Centered Navigation Links */}
         <nav className="h-full flex flex-col items-center px-6 pt-20 pb-32">
           <ul className="flex flex-col items-center gap-8 mb-12">
             {navItems.map((item) => (
@@ -83,8 +104,10 @@ export default function MobileNav() {
               </li>
             ))}
           </ul>
+          <div className="flex justify-center items-center">
+            <SignInButton />
+          </div>
 
-          {/* Close Menu Icon Button */}
           <button
             onClick={() => setIsOpen(false)}
             className="absolute bottom-0 right-8
@@ -108,17 +131,17 @@ export default function MobileNav() {
         border-t border-gray-100 dark:border-gray-800
         flex items-center justify-around px-6"
       >
-        {/* Left Icons */}
         <div className="flex-1 flex justify-center">
           <Link href="/" className="flex flex-col items-center gap-1">
-            {navItems[0].icon}
-            <span className="text-xs">{navItems[0].label}</span>
+            {navItems[1].icon}
+            <span className="text-xs">{navItems[1].label}</span>
           </Link>
         </div>
 
         {/* Center Upload Button */}
         <div className="flex-1 flex justify-center -mt-8">
           <button
+            onClick={onUploadClick}
             className="w-14 h-14 rounded-full 
               bg-gradient-to-r from-blue-500 to-purple-500
               hover:from-blue-600 hover:to-purple-600
@@ -132,11 +155,10 @@ export default function MobileNav() {
           </button>
         </div>
 
-        {/* Right Icons */}
         <div className="flex-1 flex justify-center">
           <Link href="/profile" className="flex flex-col items-center gap-1">
-            {navItems[1].icon}
-            <span className="text-xs">{navItems[1].label}</span>
+            {navItems[2].icon}
+            <span className="text-xs">{navItems[2].label}</span>
           </Link>
         </div>
       </div>
