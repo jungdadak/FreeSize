@@ -1,87 +1,99 @@
 // hooks/useFileUpload.ts
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useFileStore } from '@/store/fileStore';
-import { MAX_FILE_SIZE, ALLOWED_TYPES } from '@/lib/constants';
-import type { PresignedPostResponse, APIResponse } from '@/types';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useFileStore } from "@/store/fileStore";
+import { MAX_FILE_SIZE, ALLOWED_TYPES } from "@/lib/constants";
+import type { PresignedPostResponse, APIResponse } from "@/types";
+import type { ProcessingOptions } from "@/types/processing";
 
 export const useFileUpload = () => {
-  const router = useRouter();
-  const { file, previewUrl, setUploadStatus } = useFileStore();
-  const [selectedMethod, setSelectedMethod] = useState('');
+	const router = useRouter();
+	const { file, previewUrl, setUploadStatus } = useFileStore();
+	const [processingOptions, setProcessingOptions] = useState<ProcessingOptions>({
+		// uncrop과 upscale 옵션을 위한 초기 상태
+		uncrop: undefined,
+		upscale: undefined,
+	});
 
-  const validateFile = () => {
-    if (!file) return 'No file selected';
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return '지원하지 않는 파일 형식입니다.';
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return '파일 크기는 10MB를 초과할 수 없습니다.';
-    }
-    return null;
-  };
+	const validateFile = () => {
+		if (!file) return "No file selected";
+		if (!ALLOWED_TYPES.includes(file.type)) {
+			return "지원하지 않는 파일 형식입니다.";
+		}
+		if (file.size > MAX_FILE_SIZE) {
+			return "파일 크기는 10MB를 초과할 수 없습니다.";
+		}
+		return null;
+	};
 
-  const handleProcess = async () => {
-    if (!file || !selectedMethod) return;
+	const handleProcess = async () => {
+		if (!file) return;
 
-    const validationError = validateFile();
-    if (validationError) {
-      setUploadStatus({ stage: 'idle', error: validationError });
-      return;
-    }
+		// 선택된 프로세싱 옵션이 없는 경우 처리하지 않음
+		if (!processingOptions.uncrop && !processingOptions.upscale) {
+			setUploadStatus({
+				stage: "idle",
+				error: "처리 옵션을 하나 이상 선택해주세요.",
+			});
+			return;
+		}
 
-    try {
-      setUploadStatus({ stage: 'getting-url' });
+		const validationError = validateFile();
+		if (validationError) {
+			setUploadStatus({ stage: "idle", error: validationError });
+			return;
+		}
 
-      // 1. presignedURL만 받기
-      const filename = encodeURIComponent(file.name);
-      const res = await fetch('/api/image?file=' + filename, {
-        method: 'GET',
-      });
+		try {
+			setUploadStatus({ stage: "getting-url" });
 
-      if (!res.ok) {
-        throw new Error('Failed to get upload URL');
-      }
+			// 1. presignedURL 요청
+			const filename = encodeURIComponent(file.name);
+			const res = await fetch("/api/image?file=" + filename, {
+				method: "GET",
+			});
 
-      const presignedData =
-        (await res.json()) as APIResponse<PresignedPostResponse>;
+			if (!res.ok) {
+				throw new Error("Failed to get upload URL");
+			}
 
-      if (!presignedData.success) {
-        throw new Error(presignedData.error || 'Failed to get upload URL');
-      }
+			const presignedData =
+				(await res.json()) as APIResponse<PresignedPostResponse>;
 
-      // 2. Blob URL 정리
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+			if (!presignedData.success) {
+				throw new Error(presignedData.error || "Failed to get upload URL");
+			}
 
-      // 3. transform 페이지로 필요한 데이터 전달
-      const transformData = {
-        presignedUrl: presignedData.data!.url,
-        presignedFields: presignedData.data!.fields,
-        method: selectedMethod,
-        originalFileName: file.name,
-      };
+			// 2. Blob URL 정리
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
 
-      // 4. transform 페이지로 이동
-      router.push(
-        `/transform?data=${encodeURIComponent(JSON.stringify(transformData))}`
-      );
-    } catch (error) {
-      setUploadStatus({
-        stage: 'idle',
-        error:
-          error instanceof Error
-            ? error.message
-            : '알 수 없는 오류가 발생했습니다',
-      });
-    }
-  };
+			// 3. transform 페이지로 전달할 데이터 준비
+			const transformData = {
+				presignedUrl: presignedData.data!.url,
+				presignedFields: presignedData.data!.fields,
+				processingOptions,
+				originalFileName: file.name,
+			};
 
-  return {
-    selectedMethod,
-    setSelectedMethod,
-    handleProcess,
-    validateFile,
-  };
+			// 4. transform 페이지로 이동
+			router.push(
+				`/transform?data=${encodeURIComponent(JSON.stringify(transformData))}`
+			);
+		} catch (error) {
+			setUploadStatus({
+				stage: "idle",
+				error:
+					error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다",
+			});
+		}
+	};
+
+	return {
+		processingOptions,
+		setProcessingOptions,
+		handleProcess,
+		validateFile,
+	};
 };
