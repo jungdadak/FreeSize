@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!springResponse.ok) {
       const errorData = await springResponse.json();
-      return NextResponse.json<APIResponse>(
+      return NextResponse.json<APIResponse<null>>(
         {
           success: false,
           error: errorData.error || 'Spring 서버 에러',
@@ -29,13 +29,17 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await springResponse.json();
-    return NextResponse.json<APIResponse>({
+
+    // 제네릭 타입에 구체적인 타입을 지정하여 resultUrl 포함
+    return NextResponse.json<APIResponse<{ resultUrl: string }>>({
       success: true,
-      data,
+      data: {
+        resultUrl: data.resultUrl,
+      },
     });
   } catch (error) {
     console.error('Error:', error);
-    return NextResponse.json<APIResponse>(
+    return NextResponse.json<APIResponse<null>>(
       {
         success: false,
         error: 'Internal Server Error',
