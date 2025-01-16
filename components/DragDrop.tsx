@@ -31,21 +31,18 @@ export default function DragDrop() {
    * Validate file type and size
    */
   const validateFile = (file: File): boolean => {
-    // 먼저 파일 타입 체크
-    const validType = FILE_CONFIG.validTypes.includes(file.type);
-    if (!validType) {
+    if (!FILE_CONFIG.validTypes.includes(file.type)) {
       setError(
-        `Sorry, only ${FILE_CONFIG.formattedTypes} files are supported.`
+        `Sorry, only ${FILE_CONFIG.validTypes
+          .map((type) => type.split('/')[1].toUpperCase())
+          .join(', ')} files are supported.`
       );
       return false;
     }
-
-    // 그 다음 파일 크기 체크
     if (file.size > FILE_CONFIG.maxSize) {
       setError(`File size must be less than ${FILE_CONFIG.maxSizeInMB}MB.`);
       return false;
     }
-
     return true;
   };
 
@@ -177,7 +174,7 @@ export default function DragDrop() {
           ref={inputRef}
           type="file"
           className="hidden"
-          accept={FILE_CONFIG.validTypes.filter(Boolean).join(',')}
+          accept={FILE_CONFIG.validTypes.join(',')}
           multiple
           onChange={handleChange}
         />
@@ -194,9 +191,12 @@ export default function DragDrop() {
           Choose Files
         </button>
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          Supports {FILE_CONFIG.formattedTypes} - Max file size{' '}
-          {FILE_CONFIG.maxSizeInMB}MB each - Max {FILE_CONFIG.maxImageCount}{' '}
-          files
+          Supports{' '}
+          {FILE_CONFIG.validTypes
+            .map((type) => type.split('/')[1].toUpperCase())
+            .join(', ')}{' '}
+          - Max file size {FILE_CONFIG.maxSizeInMB}MB each - Max{' '}
+          {FILE_CONFIG.maxImageCount} files
         </p>
 
         {error && (

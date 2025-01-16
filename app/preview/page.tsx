@@ -1,5 +1,5 @@
 'use client';
-
+import { useTransformStore } from '@/store/transformStore';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -14,6 +14,7 @@ import {
   Upload,
   ChevronRight,
   ChevronLeft,
+  AlertTriangle,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -25,6 +26,10 @@ import { PROCESSING_METHODS, ASPECT_RATIOS } from '@/lib/constants';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
+
+// 최대 해상도 상수 정의
+const MAX_WIDTH = 2048;
+const MAX_HEIGHT = 2048;
 
 // ------------------- Swiper 네비게이션 -------------------
 function SwiperNavigation({ totalFiles }: { totalFiles: number }) {
@@ -65,8 +70,7 @@ function SwiperNavigation({ totalFiles }: { totalFiles: number }) {
         className="px-6 py-2 min-w-[100px] text-center 
           bg-gray-900/60 dark:bg-gray-900/60 
           backdrop-blur-sm border border-gray-700/50 
-          rounded-xl text-gray-200 dark:text-gray-200
-        "
+          rounded-xl text-gray-200 dark:text-gray-200"
       >
         {activeIndex + 1} / {totalFiles}
       </div>
@@ -82,8 +86,7 @@ function SwiperNavigation({ totalFiles }: { totalFiles: number }) {
             activeIndex === totalFiles - 1
               ? 'opacity-40 cursor-not-allowed'
               : 'hover:bg-gray-800 hover:border-gray-600 hover:scale-105 hover:shadow-xl'
-          }
-        `}
+          }`}
       >
         Next
         <ChevronRight className="w-5 h-5" />
@@ -145,7 +148,6 @@ export default function PreviewPage() {
   }, [files]);
 
   // ------------------- useEffect: 파일 없으면 메인으로, 이미지 dimensions 세팅 -------------------
-
   useEffect(() => {
     if (files.length === 0) {
       router.push('/');
@@ -199,6 +201,7 @@ export default function PreviewPage() {
     const currentOption = files[fileIndex].processingOption;
     if (currentOption?.method === 'upscale') {
       setProcessingOption(fileIndex, { ...currentOption, factor });
+      // 추가: 알림 메시지 대신 경고 표시는 아래에서 처리
     }
   };
 
@@ -222,7 +225,7 @@ export default function PreviewPage() {
     if (!hasProcessingOptions) {
       setUploadStatus({
         stage: 'idle',
-        error: 'Please select at least one processing option.',
+        error: '처리 옵션을 최소 하나 이상 선택해주세요.',
       });
       return;
     }
@@ -240,13 +243,15 @@ export default function PreviewPage() {
           method: 'GET',
         });
         if (!res.ok) {
-          throw new Error(`Failed to get upload URL for ${fileItem.file.name}`);
+          throw new Error(
+            `파일 업로드 URL을 가져오지 못했습니다: ${fileItem.file.name}`
+          );
         }
         const presignedData = await res.json();
         if (!presignedData.success) {
           throw new Error(
             presignedData.error ||
-              `Failed to get upload URL for ${fileItem.file.name}`
+              `파일 업로드 URL을 가져오지 못했습니다: ${fileItem.file.name}`
           );
         }
         return {
@@ -280,21 +285,23 @@ export default function PreviewPage() {
           processingOptions: fileItem.processingOption,
           originalFileName: fileItem.file.name,
           previewUrl: fileItem.previewUrl,
+          width: fileItem.dimensions?.width || 800,
+          height: fileItem.dimensions?.height || 600,
         })
       );
 
-      router.push(
-        `/transform?data=${encodeURIComponent(
-          JSON.stringify(transformDataArray)
-        )}`
-      );
+      // Transform 스토어에 데이터 설정
+      await useTransformStore.getState().setTransformData(transformDataArray);
+
+      // Transform 페이지로 이동
+      router.push('/transform');
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : typeof error === 'string'
           ? error
-          : 'An unknown error occurred';
+          : '알 수 없는 오류가 발생했습니다.';
 
       setUploadStatus({ stage: 'idle', error: errorMessage });
       setIsUploading(false);
@@ -328,7 +335,7 @@ export default function PreviewPage() {
               Image Processing Studio
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Transform your images with advanced AI processing
+              AI를 이용한 고급 이미지 처리로 이미지를 변환하세요
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -340,7 +347,7 @@ export default function PreviewPage() {
               `}
             >
               <FileImage className="w-4 h-4 mr-2" />
-              {totalFiles} Files
+              {totalFiles} 개의 파일
             </Badge>
             <Badge
               variant="secondary"
@@ -401,7 +408,7 @@ export default function PreviewPage() {
                                 variant="outline"
                                 className="px-3 py-1 text-sm"
                               >
-                                File {index + 1}
+                                파일 {index + 1}
                               </Badge>
                               <h2 className="text-sm font-medium truncate">
                                 {fileItem.file.name}
@@ -413,7 +420,7 @@ export default function PreviewPage() {
                                 p-2 rounded-full text-white transition-all duration-200
                                 bg-black/40 hover:bg-black/60
                               `}
-                              aria-label={`Remove file ${fileItem.file.name}`}
+                              aria-label={`파일 ${fileItem.file.name} 제거`}
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -422,7 +429,7 @@ export default function PreviewPage() {
                           <div className="flex items-center justify-center w-full aspect-square">
                             <Image
                               src={fileItem.previewUrl}
-                              alt={`Preview ${index + 1}`}
+                              alt={`미리보기 ${index + 1}`}
                               width={500}
                               height={500}
                               className="
@@ -443,7 +450,7 @@ export default function PreviewPage() {
                             >
                               {fileItem.dimensions
                                 ? `${fileItem.dimensions.width}×${fileItem.dimensions.height}`
-                                : 'Loading...'}
+                                : '로딩 중...'}
                             </Badge>
                             <Badge
                               variant="secondary"
@@ -468,7 +475,7 @@ export default function PreviewPage() {
                           `}
                         >
                           <h3 className="text-lg font-semibold mb-4">
-                            Processing Options
+                            처리 옵션
                           </h3>
                           <div className="space-y-6">
                             {PROCESSING_METHODS.map((method) => (
@@ -561,33 +568,123 @@ export default function PreviewPage() {
                                       >
                                         {[
                                           {
-                                            label: 'x1 (Sharpen)',
+                                            label: 'x1 Sharper',
                                             value: 'x1',
                                           },
                                           { label: 'x2', value: 'x2' },
                                           { label: 'x4', value: 'x4' },
-                                        ].map((option) => (
-                                          <div
-                                            key={option.value}
-                                            className="flex items-center space-x-3"
-                                          >
-                                            <RadioGroupItem
-                                              value={option.value}
-                                              id={`upscale-${option.value}-${index}`}
-                                              className="border-indigo-600 text-indigo-600"
-                                            />
-                                            <label
-                                              htmlFor={`upscale-${option.value}-${index}`}
-                                              className="text-sm"
+                                        ].map((option) => {
+                                          // 예상 해상도 계산
+                                          let expectedWidth =
+                                            fileItem.dimensions
+                                              ? fileItem.dimensions.width
+                                              : 0;
+                                          let expectedHeight =
+                                            fileItem.dimensions
+                                              ? fileItem.dimensions.height
+                                              : 0;
+
+                                          if (option.value === 'x2') {
+                                            expectedWidth *= 2;
+                                            expectedHeight *= 2;
+                                          } else if (option.value === 'x4') {
+                                            expectedWidth *= 4;
+                                            expectedHeight *= 4;
+                                          }
+
+                                          // 최대 해상도 초과 여부 판단
+                                          const exceedsMax =
+                                            (option.value === 'x2' ||
+                                              option.value === 'x4') &&
+                                            (expectedWidth > MAX_WIDTH ||
+                                              expectedHeight > MAX_HEIGHT);
+
+                                          return (
+                                            <div
+                                              key={option.value}
+                                              className="flex items-center space-x-3"
                                             >
-                                              {option.label}
-                                            </label>
-                                          </div>
-                                        ))}
+                                              <RadioGroupItem
+                                                value={option.value}
+                                                id={`upscale-${option.value}-${index}`}
+                                                className="border-indigo-600 text-indigo-600"
+                                              />
+                                              <label
+                                                htmlFor={`upscale-${option.value}-${index}`}
+                                                className="text-sm flex items-center space-x-2"
+                                              >
+                                                <span>{option.label}</span>
+                                                <span
+                                                  className={`font-bold ${
+                                                    exceedsMax
+                                                      ? 'text-yellow-500'
+                                                      : 'text-blue-500'
+                                                  }`}
+                                                >
+                                                  {exceedsMax
+                                                    ? 'Maximum'
+                                                    : `${expectedWidth}×${expectedHeight}`}
+                                                </span>
+                                              </label>
+                                            </div>
+                                          );
+                                        })}
                                       </RadioGroup>
+
+                                      {/* x2 또는 x4 선택 시 최대 해상도 초과 알림 */}
+                                      {fileItem.processingOption.factor &&
+                                        ['x2', 'x4'].includes(
+                                          fileItem.processingOption.factor
+                                        ) &&
+                                        fileItem.dimensions &&
+                                        (() => {
+                                          const factor =
+                                            fileItem.processingOption.factor;
+                                          const expectedWidth =
+                                            fileItem.dimensions.width *
+                                            (factor === 'x2' ? 2 : 4);
+                                          const expectedHeight =
+                                            fileItem.dimensions.height *
+                                            (factor === 'x2' ? 2 : 4);
+                                          const exceeds =
+                                            expectedWidth > MAX_WIDTH ||
+                                            expectedHeight > MAX_HEIGHT;
+
+                                          if (exceeds) {
+                                            // 조정된 해상도 계산
+                                            const scale = Math.min(
+                                              MAX_WIDTH / expectedWidth,
+                                              MAX_HEIGHT / expectedHeight
+                                            );
+                                            const adjustedWidth = Math.floor(
+                                              expectedWidth * scale
+                                            );
+                                            const adjustedHeight = Math.floor(
+                                              expectedHeight * scale
+                                            );
+
+                                            return (
+                                              <div className="justify-center gap-10 border p-2 rounded border-yellow-200 mt-2 flex items-center text-sm text-yellow-500">
+                                                <AlertTriangle className="w-7 h-7 mr-1 " />
+                                                <p className="text-start">
+                                                  최대 허용 해상도{' '}
+                                                  <span className="text-cyan-500">
+                                                    {MAX_WIDTH}×{MAX_HEIGHT}
+                                                  </span>
+                                                  를 초과하여 <br />
+                                                  <span className="text-indigo-400">
+                                                    {adjustedWidth}×
+                                                    {adjustedHeight}
+                                                  </span>
+                                                  로 조정됩니다.
+                                                </p>
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
                                     </div>
                                   )}
-
                                 {/* square 옵션 */}
                                 {method.id === 'square' &&
                                   fileItem.processingOption?.method ===
@@ -600,7 +697,7 @@ export default function PreviewPage() {
                                       `}
                                     >
                                       <p className="text-sm">
-                                        Square option is not yet implemented.
+                                        Square 옵션은 아직 구현되지 않았습니다.
                                       </p>
                                     </div>
                                   )}
@@ -642,7 +739,7 @@ export default function PreviewPage() {
                   <Loader2 className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400" />
                   <div className="space-y-1 text-center">
                     <p className="text-indigo-600 dark:text-indigo-400">
-                      Uploading file {currentFileIndex} of {files.length}
+                      파일 업로드 중 {currentFileIndex} / {files.length}
                     </p>
                     <div className="w-full bg-indigo-200 dark:bg-indigo-900 rounded-full h-2">
                       <div
@@ -651,7 +748,7 @@ export default function PreviewPage() {
                       />
                     </div>
                     <p className="text-sm text-indigo-600 dark:text-indigo-400">
-                      {currentFileProgress}% Complete
+                      {currentFileProgress}% 완료
                     </p>
                   </div>
                 </div>
@@ -669,7 +766,7 @@ export default function PreviewPage() {
                 `}
                 disabled={uploadStatus.stage !== 'idle'}
               >
-                Cancel
+                취소
               </button>
               <button
                 onClick={handleProcess}
@@ -686,11 +783,11 @@ export default function PreviewPage() {
                 {uploadStatus.stage === 'getting-url' ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Preparing...
+                    준비 중...
                   </>
                 ) : (
                   <>
-                    Start Processing
+                    처리 시작
                     <ChevronRight className="w-5 h-5" />
                   </>
                 )}

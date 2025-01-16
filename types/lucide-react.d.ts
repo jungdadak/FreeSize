@@ -43,6 +43,6 @@ declare module 'lucide-react' {
   export const ChevronRight: React.FC<IconProps>;
   export const ChevronLeft: React.Fc<IconProps>;
   export const Activity: React.FC<IconProps>;
-
+  export const AlertTriangle: React.FC<IconProps>;
   // 추가적인 아이콘이 필요하면 여기에 선언하세요.
 }
