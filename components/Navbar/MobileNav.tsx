@@ -137,12 +137,12 @@ export default function MobileNav() {
 
       {/* Hidden file input */}
       <input
-        type="file"
         ref={inputRef}
+        type="file"
         className="hidden"
-        onChange={handleChange}
         accept={FILE_CONFIG.validTypes.filter(Boolean).join(',')}
         multiple
+        onChange={handleChange}
       />
 
       {/* Mobile Dropdown Menu */}

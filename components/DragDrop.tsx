@@ -177,7 +177,7 @@ export default function DragDrop() {
           ref={inputRef}
           type="file"
           className="hidden"
-          accept={FILE_CONFIG.validTypes.join(',')}
+          accept={FILE_CONFIG.validTypes.filter(Boolean).join(',')}
           multiple
           onChange={handleChange}
         />
