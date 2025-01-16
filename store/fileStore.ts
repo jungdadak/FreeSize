@@ -1,50 +1,64 @@
-import { create } from "zustand";
-import type { UploadStatus } from "@/types";
-import type { ImageDimensions } from "@/utils/image";
-import type { ProcessingMethod, ProcessingOptions } from "@/types/transform";
+// store/fileStore.ts
+import { create } from 'zustand';
+import type { UploadStatus } from '@/types';
+import type { ImageDimensions } from '@/utils/image';
+import type { ProcessingMethod, ProcessingOptions } from '@/types/transform';
+
+export interface FileItem {
+  file: File;
+  previewUrl: string;
+  dimensions: ImageDimensions | null;
+}
 
 export interface FileState {
-	file: File | null;
-	previewUrl: string | null;
-	dimensions: ImageDimensions | null;
-	uploadStatus: UploadStatus;
-	selectedMethods: ProcessingMethod[];
-	processingOptions: ProcessingOptions; // 추가
-	setFile: (file: File | null) => void;
-	setPreviewUrl: (url: string | null) => void;
-	setDimensions: (dimensions: ImageDimensions | null) => void;
-	setUploadStatus: (status: Partial<UploadStatus>) => void;
-	setSelectedMethods: (methods: ProcessingMethod[]) => void;
-	setProcessingOptions: (options: ProcessingOptions) => void; // 추가
-	resetFileStore: () => void;
+  files: FileItem[];
+  uploadStatus: UploadStatus;
+  selectedMethods: ProcessingMethod[];
+  processingOptions: ProcessingOptions;
+  setFiles: (files: FileItem[]) => void;
+  addFile: (fileItem: FileItem) => void;
+  removeFile: (index: number) => void;
+  setUploadStatus: (status: Partial<UploadStatus>) => void;
+  setSelectedMethods: (methods: ProcessingMethod[]) => void;
+  setProcessingOptions: (options: ProcessingOptions) => void;
+  resetFileStore: () => void;
 }
 
 const initialState: Omit<
-	FileState,
-	| "setFile"
-	| "setPreviewUrl"
-	| "setDimensions"
-	| "setUploadStatus"
-	| "setSelectedMethods"
-	| "setProcessingOptions"
-	| "resetFileStore"
+  FileState,
+  | 'setFiles'
+  | 'addFile'
+  | 'removeFile'
+  | 'setUploadStatus'
+  | 'setSelectedMethods'
+  | 'setProcessingOptions'
+  | 'resetFileStore'
 > = {
-	file: null,
-	previewUrl: null,
-	dimensions: null,
-	uploadStatus: { stage: "idle" },
-	selectedMethods: [],
-	processingOptions: {}, // 추가
+  files: [],
+  uploadStatus: { stage: 'idle' },
+  selectedMethods: [],
+  processingOptions: {},
 };
 
-export const useFileStore = create<FileState>()((set) => ({
-	...initialState,
-	setFile: (file) => set({ file }),
-	setPreviewUrl: (url) => set({ previewUrl: url }),
-	setDimensions: (dimensions) => set({ dimensions }),
-	setUploadStatus: (status) =>
-		set((state) => ({ uploadStatus: { ...state.uploadStatus, ...status } })),
-	setSelectedMethods: (methods) => set({ selectedMethods: methods }),
-	setProcessingOptions: (options) => set({ processingOptions: options }), // 추가
-	resetFileStore: () => set(initialState), // 상태만 리셋
+export const useFileStore = create<FileState>()((set, get) => ({
+  ...initialState,
+  setFiles: (files) => set({ files }),
+  addFile: (fileItem) =>
+    set((state) => ({ files: [...state.files, fileItem] })),
+  removeFile: (index) =>
+    set((state) => {
+      const newFiles = [...state.files];
+      const [removed] = newFiles.splice(index, 1);
+      URL.revokeObjectURL(removed.previewUrl);
+      return { files: newFiles };
+    }),
+  setUploadStatus: (status) =>
+    set((state) => ({ uploadStatus: { ...state.uploadStatus, ...status } })),
+  setSelectedMethods: (methods) => set({ selectedMethods: methods }),
+  setProcessingOptions: (options) => set({ processingOptions: options }),
+  resetFileStore: () => {
+    // 모든 Blob URL을 해제
+    get().files.forEach((fileItem) => URL.revokeObjectURL(fileItem.previewUrl));
+    set(initialState);
+  },
 }));

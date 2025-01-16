@@ -8,4 +8,5 @@ export const FILE_CONFIG = {
   maxSizeInMB: Number(
     (Number(process.env.NEXT_PUBLIC_MAX_FILE_SIZE) / 1048576).toFixed(2)
   ),
+  maxImageCount: Number(process.env.NEXT_PUBLIC_MAX_IMAGE_COUNT),
 };
