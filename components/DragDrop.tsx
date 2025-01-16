@@ -31,16 +31,21 @@ export default function DragDrop() {
    * Validate file type and size
    */
   const validateFile = (file: File): boolean => {
-    if (!FILE_CONFIG.validTypes.includes(file.type)) {
+    // 먼저 파일 타입 체크
+    const validType = FILE_CONFIG.validTypes.includes(file.type);
+    if (!validType) {
       setError(
         `Sorry, only ${FILE_CONFIG.formattedTypes} files are supported.`
       );
       return false;
     }
+
+    // 그 다음 파일 크기 체크
     if (file.size > FILE_CONFIG.maxSize) {
       setError(`File size must be less than ${FILE_CONFIG.maxSizeInMB}MB.`);
       return false;
     }
+
     return true;
   };
 
