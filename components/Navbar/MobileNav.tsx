@@ -47,7 +47,9 @@ export default function MobileNav() {
 
   const validateFile = (file: File): boolean => {
     if (!FILE_CONFIG.validTypes.includes(file.type)) {
-      setError(`Sorry, only JPEG, WEBP, PNG files are supported.`);
+      setError(
+        `Sorry, only ${FILE_CONFIG.formattedTypes} files are supported.`
+      );
       return false;
     }
     if (file.size > FILE_CONFIG.maxSize) {
@@ -134,7 +136,7 @@ export default function MobileNav() {
         ref={inputRef}
         className="hidden"
         onChange={handleChange}
-        accept={FILE_CONFIG.validTypes.join(',')}
+        accept={FILE_CONFIG.validTypes.filter(Boolean).join(',')}
         multiple
       />
 
