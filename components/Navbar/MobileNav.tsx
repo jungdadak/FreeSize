@@ -47,8 +47,11 @@ export default function MobileNav() {
 
   const validateFile = (file: File): boolean => {
     if (!FILE_CONFIG.validTypes.includes(file.type)) {
-      setError('Sorry, only PNG, JPEG, WEBP files are supported.');
-
+      setError(
+        `Sorry, only ${FILE_CONFIG.validTypes
+          .map((type) => type.split('/')[1].toUpperCase())
+          .join(', ')} files are supported.`
+      );
       return false;
     }
     if (file.size > FILE_CONFIG.maxSize) {
