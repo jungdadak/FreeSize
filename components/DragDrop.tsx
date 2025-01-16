@@ -3,6 +3,7 @@ import { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFileStore } from '@/store/fileStore';
+import { FILE_CONFIG } from '@/configs/file.config';
 
 export default function DragDrop() {
   const [dragActive, setDragActive] = useState<boolean>(false);
@@ -12,6 +13,13 @@ export default function DragDrop() {
   const setFile = useFileStore((state) => state.setFile);
   const setPreviewUrl = useFileStore((state) => state.setPreviewUrl);
 
+  /**
+   *
+   * @param e 드래그 이벤트
+   * e.stopPropagation으로 업로드와 동시에 브라우저에서 새로운 이미지탭이 열리는 것을 방지
+   * 드래그 폼에 dragenter, dragover 발생전 preventDefault
+   * dragleave시 작동 중지
+   */
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -21,17 +29,22 @@ export default function DragDrop() {
       setDragActive(false);
     }
   };
-
+  /**
+   * 파일 타입 벨리데이션
+   * @param file
+   * jpeg, png, gif, webp 지원
+   */
   const validateFile = (file: File): boolean => {
-    const validTypes = ['image/jpeg', 'image/png'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
-
-    if (!validTypes.includes(file.type)) {
-      setError('Only JPG and PNG files are allowed');
+    if (!FILE_CONFIG.validTypes.includes(file.type)) {
+      setError(
+        `Sorry, Only ${FILE_CONFIG.validTypes
+          .map((type) => type.split('/')[1])
+          .join(', ')} Supported`
+      );
       return false;
     }
-    if (file.size > maxSize) {
-      setError('File size must be less than 10MB');
+    if (file.size > FILE_CONFIG.maxSize) {
+      setError(`File size must be less than ${FILE_CONFIG.maxSizeInMB}MB`);
       return false;
     }
     return true;
