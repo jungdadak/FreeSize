@@ -1,35 +1,35 @@
 // components/ui/radio-group.tsx
-"use client";
+'use client';
 
-import * as React from "react";
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { Circle } from "lucide-react";
+import * as React from 'react';
+import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import { Circle } from 'lucide-react';
 
 const RadioGroup = React.forwardRef<
-	React.ElementRef<typeof RadioGroupPrimitive.Root>,
-	React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
+  React.ElementRef<typeof RadioGroupPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
 >(({ ...props }, ref) => {
-	return (
-		<RadioGroupPrimitive.Root className="grid gap-2" {...props} ref={ref} />
-	);
+  return (
+    <RadioGroupPrimitive.Root className="grid gap-2" {...props} ref={ref} />
+  );
 });
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 const RadioGroupItem = React.forwardRef<
-	React.ElementRef<typeof RadioGroupPrimitive.Item>,
-	React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ ...props }, ref) => {
-	return (
-		<RadioGroupPrimitive.Item
-			ref={ref}
-			className="aspect-square h-4 w-4 rounded-full border border-slate-200 border-slate-900 text-slate-900 ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:border-slate-50 dark:text-slate-50 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-800"
-			{...props}
-		>
-			<RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-				<Circle className="h-2.5 w-2.5 fill-current text-current" />
-			</RadioGroupPrimitive.Indicator>
-		</RadioGroupPrimitive.Item>
-	);
+  React.ElementRef<typeof RadioGroupPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
+>(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Item
+      ref={ref}
+      className={`aspect-square h-4 w-4 rounded-full border border-gray-600 text-indigo-500 ring-offset-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-indigo-500 ${className}`}
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
+        <Circle className="h-2.5 w-2.5 fill-current text-current" />
+      </RadioGroupPrimitive.Indicator>
+    </RadioGroupPrimitive.Item>
+  );
 });
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
 

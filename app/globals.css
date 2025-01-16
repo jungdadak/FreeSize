@@ -19,3 +19,33 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Add to your global CSS */
+.swiper {
+  padding-bottom: 4rem !important;
+}
+
+.swiper-pagination {
+  bottom: 0 !important;
+}
+
+/* Optional: Style the bullets to match your design */
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #cbd5e1;
+  opacity: 0.5;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  background-color: #6366f1;
+}
+
+/* Dark mode */
+.dark .swiper-pagination-bullet {
+  background-color: #94a3b8;
+}
+
+.dark .swiper-pagination-bullet-active {
+  background-color: #818cf8;
+}
