@@ -5,7 +5,7 @@ import DarkModeToggler from '../DarkModeToggler';
 import MobileNav from './MobileNav';
 import { RocketIcon } from 'lucide-react';
 import SignInButton from '../Btn/SignInButton';
-
+import Logo from '../Logo';
 const navItems = [
   {
     href: '/quickstart',
@@ -31,11 +31,7 @@ export default function Navbar() {
           flex items-center justify-between"
         >
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-3xl font-bold bg-gradient-rainbow text-transparent bg-clip-text">
-              PicOps
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">

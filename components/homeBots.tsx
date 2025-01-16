@@ -82,7 +82,7 @@ const HomeBots = () => {
 
       {/* Footer */}
       <footer className="text-center py-8 text-gray-500 dark:text-gray-400 mt-24">
-        <p>© 2024 PicOps. All rights reserved.</p>
+        <p>© 2025 FreeSize. All rights reserved.</p>
       </footer>
     </div>
   );
