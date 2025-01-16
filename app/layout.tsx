@@ -5,6 +5,11 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 
+// Import Swiper's CSS
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -26,7 +31,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const themeFromCookie = (await cookies()).get('theme');
-  // 쿠키가 없으면 'dark'를 기본값으로 사용
+  // Use 'dark' as the default theme if no cookie is found
   const theme = themeFromCookie?.value || 'dark';
 
   return (

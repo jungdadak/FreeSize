@@ -1,7 +1,6 @@
 'use client';
 import SignInButton from '../Btn/SignInButton';
 import { useRef } from 'react';
-import { useBlobUpload } from '@/hooks/useBlobUpload';
 import {
   Menu,
   X,
@@ -13,6 +12,9 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useFileStore, FileItem } from '@/store/fileStore';
+import { FILE_CONFIG } from '@/configs/file.config';
 
 interface NavItem {
   href: string;
@@ -33,17 +35,80 @@ const navItems: NavItem[] = [
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const { handleFileUpload } = useBlobUpload();
+  const router = useRouter();
+  const files = useFileStore((state) => state.files);
+  const addFile = useFileStore((state) => state.addFile);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const validateFile = (file: File): boolean => {
+    if (!FILE_CONFIG.validTypes.includes(file.type)) {
+      setError(
+        `Sorry, only ${FILE_CONFIG.validTypes
+          .map((type) => type.split('/')[1].toUpperCase())
+          .join(', ')} files are supported.`
+      );
+      return false;
+    }
+    if (file.size > FILE_CONFIG.maxSize) {
+      setError(`File size must be less than ${FILE_CONFIG.maxSizeInMB}MB.`);
+      return false;
+    }
+    return true;
+  };
+
+  const isDuplicate = (file: File): boolean => {
+    return files.some(
+      (item) => item.file.name === file.name && item.file.size === file.size
+    );
+  };
+
+  const exceedsFileLimit = (newFilesCount: number): boolean => {
+    return files.length + newFilesCount > FILE_CONFIG.maxImageCount;
+  };
+
+  const processFile = (file: File) => {
+    if (!validateFile(file)) {
+      return;
+    }
+
+    if (isDuplicate(file)) {
+      setError(`File "${file.name}" is already selected.`);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    const fileItem: FileItem = {
+      file,
+      previewUrl,
+      dimensions: null,
+      processingOption: null,
+    };
+    addFile(fileItem);
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
+    e.preventDefault();
+    setError('');
+
+    const selectedFiles = e.target.files;
+    if (selectedFiles && selectedFiles.length > 0) {
+      const newFilesCount = selectedFiles.length;
+      if (exceedsFileLimit(newFilesCount)) {
+        setError(
+          `You can only upload up to ${FILE_CONFIG.maxImageCount} files.`
+        );
+        return;
+      }
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        processFile(selectedFiles[i]);
+      }
+      router.push('/preview');
     }
   };
 
@@ -73,7 +138,8 @@ export default function MobileNav() {
         ref={inputRef}
         className="hidden"
         onChange={handleChange}
-        accept="image/jpeg,image/png"
+        accept={FILE_CONFIG.validTypes.join(',')}
+        multiple
       />
 
       {/* Mobile Dropdown Menu */}
@@ -153,6 +219,11 @@ export default function MobileNav() {
           >
             <Plus className="w-6 h-6 text-white" />
           </button>
+          {error && (
+            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-2 py-1 rounded text-xs">
+              {error}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 flex justify-center">

@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
       ? forwarded.split(',')[0]
       : request.headers.get('x-real-ip') || 'unknown';
 
+    // === [1] 중복 방지용 S3 key 생성
     const uniqueFileName = generateUniqueFileName(clientIp, fileName);
 
+    // === [2] 해당 key로 presigned URL 발급
     const url = await createPresignedPost(s3Client, {
       Bucket: process.env.BUCKET_NAME!,
       Key: uniqueFileName,
@@ -32,9 +34,15 @@ export async function GET(request: NextRequest) {
       Conditions: [['content-length-range', 0, 10485760]],
     });
 
-    return NextResponse.json<APIResponse<PresignedPostResponse>>({
+    // === [3] S3 key + presigned 객체를 함께 반환
+    return NextResponse.json<
+      APIResponse<{ presigned: PresignedPostResponse; s3Key: string }>
+    >({
       success: true,
-      data: url,
+      data: {
+        presigned: url,
+        s3Key: uniqueFileName,
+      },
     });
   } catch (error) {
     console.error('S3 presigned URL error:', error);

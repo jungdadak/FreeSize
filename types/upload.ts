@@ -8,7 +8,7 @@ export interface UploadStatus {
 
 export interface PresignedPostResponse {
   url: string;
-  fields: Record<string, string>;
+  fields: { [key: string]: string };
 }
 
 export interface ProcessMethod {

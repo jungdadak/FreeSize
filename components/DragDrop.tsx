@@ -1,3 +1,4 @@
+// components/DragDrop.tsx
 'use client';
 import { useState, useRef, DragEvent, ChangeEvent, KeyboardEvent } from 'react';
 import { Upload } from 'lucide-react';
@@ -14,8 +15,7 @@ export default function DragDrop() {
   const addFile = useFileStore((state) => state.addFile);
 
   /**
-   * 드래그 이벤트 핸들러
-   * e.stopPropagation으로 브라우저의 기본 동작을 방지
+   * Drag event handler
    */
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -28,9 +28,7 @@ export default function DragDrop() {
   };
 
   /**
-   * 파일 타입 및 크기 벨리데이션
-   * @param file - 검사할 파일
-   * @returns 유효한 파일인지 여부
+   * Validate file type and size
    */
   const validateFile = (file: File): boolean => {
     if (!FILE_CONFIG.validTypes.includes(file.type)) {
@@ -49,9 +47,7 @@ export default function DragDrop() {
   };
 
   /**
-   * 중복 파일 검사
-   * @param file - 검사할 파일
-   * @returns 중복 여부
+   * Check for duplicate files
    */
   const isDuplicate = (file: File): boolean => {
     return files.some(
@@ -60,17 +56,14 @@ export default function DragDrop() {
   };
 
   /**
-   * 파일 수 제한 검사
-   * @param newFilesCount - 추가할 파일 수
-   * @returns 파일 수 제한을 초과하는지 여부
+   * Check if adding new files exceeds the limit
    */
   const exceedsFileLimit = (newFilesCount: number): boolean => {
     return files.length + newFilesCount > FILE_CONFIG.maxImageCount;
   };
 
   /**
-   * 파일 처리: 벨리데이션, 중복 검사, 파일 수 제한, Blob URL 생성 및 상태 업데이트
-   * @param file - 처리할 파일
+   * Process and add file to the store
    */
   const processFile = (file: File) => {
     if (!validateFile(file)) {
@@ -86,12 +79,15 @@ export default function DragDrop() {
     const fileItem: FileItem = {
       file,
       previewUrl,
-      dimensions: null, // 필요 시 업데이트
+      dimensions: null, // To be updated later
+      processingOption: null, // Initialize as null
     };
     addFile(fileItem);
   };
 
-  // 파일 검증 및 업로드 처리 부분 (드래그 앤 드롭)
+  /**
+   * Handle file drop event
+   */
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -116,8 +112,7 @@ export default function DragDrop() {
   };
 
   /**
-   * 파일 선택 시 처리
-   * @param e - 변경 이벤트
+   * Handle file selection via input
    */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -141,15 +136,14 @@ export default function DragDrop() {
   };
 
   /**
-   * 파일 선택 버튼 클릭 시 파일 선택 창 열기
+   * Trigger file input click
    */
   const onButtonClick = () => {
     inputRef.current?.click();
   };
 
   /**
-   * 키보드 접근성 향상
-   * @param e - 키보드 이벤트
+   * Handle keyboard events for accessibility
    */
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
