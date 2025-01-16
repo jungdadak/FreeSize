@@ -32,11 +32,8 @@ export default function DragDrop() {
    */
   const validateFile = (file: File): boolean => {
     if (!FILE_CONFIG.validTypes.includes(file.type)) {
-      setError(
-        `Sorry, only ${FILE_CONFIG.validTypes
-          .map((type) => type.split('/')[1].toUpperCase())
-          .join(', ')} files are supported.`
-      );
+      setError('Sorry, only PNG, JPEG, WEBP files are supported.');
+
       return false;
     }
     if (file.size > FILE_CONFIG.maxSize) {
@@ -191,12 +188,9 @@ export default function DragDrop() {
           Choose Files
         </button>
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          Supports{' '}
-          {FILE_CONFIG.validTypes
-            .map((type) => type.split('/')[1].toUpperCase())
-            .join(', ')}{' '}
-          - Max file size {FILE_CONFIG.maxSizeInMB}MB each - Max{' '}
-          {FILE_CONFIG.maxImageCount} files
+          Supports Supports PNG, JPEG, WEBP - - Max file size{' '}
+          {FILE_CONFIG.maxSizeInMB}MB each - Max {FILE_CONFIG.maxImageCount}{' '}
+          files
         </p>
 
         {error && (
