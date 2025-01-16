@@ -3,9 +3,9 @@
  */
 
 export const FILE_CONFIG = {
-  validTypes: process.env.NEXT_PUBLIC_VALID_FILE_TYPES?.split(',').filter(
+  validTypes: process.env.NEXT_PUBLIC_VALID_FILE_TYPES?.split(', ').filter(
     Boolean
-  ) || ['image/jpeg', 'image/png'],
+  ) || ['image/jpeg', 'image/png', 'image/webp'],
   maxSize: Number(process.env.NEXT_PUBLIC_MAX_FILE_SIZE) || 4 * 1024 * 1024,
   maxSizeInMB:
     Number(
