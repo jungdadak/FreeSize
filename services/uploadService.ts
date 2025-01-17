@@ -49,8 +49,7 @@ async function getPresignedUrl(filename: string) {
 }
 
 export function useFileUpload() {
-  const { startUpload, setProgress, setStage, setError, reset } =
-    useUploadStore();
+  const { startUpload, setProgress, setStage, setError } = useUploadStore();
 
   return useMutation({
     mutationFn: async (files: File[]) => {
@@ -80,7 +79,7 @@ export function useFileUpload() {
         for (let i = 0; i < presignedResults.length; i++) {
           const { file, presigned } = presignedResults[i];
           await uploadToS3(presigned.url, presigned.fields, file, (progress) =>
-            setProgress(i + 1, progress)
+            setProgress(i, progress)
           );
         }
 
@@ -91,9 +90,6 @@ export function useFileUpload() {
         setError(message);
         throw error;
       }
-    },
-    onSettled: () => {
-      reset();
     },
   });
 }

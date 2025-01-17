@@ -106,7 +106,7 @@ function setFileDimensions(index: number, width: number, height: number) {
 export default function PreviewPage() {
   const router = useRouter();
   const uploadMutation = useFileUpload();
-  const uploadState = useUploadStore();
+  const { isUploading, stage } = useUploadStore(); // uploadState에서 필요한 값만 가져오기
 
   const {
     files,
@@ -206,11 +206,11 @@ export default function PreviewPage() {
     }
 
     try {
+      // 업로드 시작
       const results = await uploadMutation.mutateAsync(
         files.map((f) => f.file)
       );
 
-      // 업로드 완료 후 transform 페이지로 이동
       const transformDataArray = results.map((result, index) => ({
         s3Key: result.s3Key,
         processingOptions: files[index].processingOption,
@@ -223,8 +223,10 @@ export default function PreviewPage() {
       // Transform 스토어에 데이터 설정
       useTransformStore.getState().setTransformData(transformDataArray);
 
-      // Transform 페이지로 이동
-      router.push('/transform');
+      // 약간의 지연 후 페이지 이동
+      setTimeout(() => {
+        router.push('/transform');
+      }, 100);
     } catch (error) {
       console.error('Upload failed:', error);
     }
@@ -637,39 +639,8 @@ export default function PreviewPage() {
 
             {/* 에러 메시지 */}
             {uploadStatus.error && (
-              <div
-                className={`
-                  mt-6 p-4 rounded-lg
-                  bg-red-100 border border-red-300 text-red-600
-                  dark:bg-red-900/20 dark:border-red-800 dark:text-red-400
-                `}
-              >
+              <div className="mt-6 p-4 rounded-lg bg-red-100 border border-red-300 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
                 <p className="text-center">{uploadStatus.error}</p>
-              </div>
-            )}
-
-            {/* 업로드 진행 상황 - 수정된 부분 */}
-            {uploadState.isUploading && (
-              <div className="mt-6 p-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400" />
-                  <div className="space-y-1 text-center">
-                    <p className="text-indigo-600 dark:text-indigo-400">
-                      {uploadState.stage === 'getting-url'
-                        ? '업로드 준비 중...'
-                        : `파일 업로드 중 ${uploadState.currentFileIndex} / ${files.length}`}
-                    </p>
-                    <div className="w-full bg-indigo-200 dark:bg-indigo-900 rounded-full h-2">
-                      <div
-                        className="bg-indigo-600 dark:bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadState.currentFileProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-indigo-600 dark:text-indigo-400">
-                      {uploadState.currentFileProgress}% 완료
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -677,11 +648,7 @@ export default function PreviewPage() {
             <div className="mt-8 flex justify-end gap-4">
               <button
                 onClick={handleCancel}
-                className={`
-                  px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700
-                  hover:bg-gray-200 transition-all duration-200
-                  dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800
-                `}
+                className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-200 transition-all duration-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 disabled={uploadStatus.stage !== 'idle'}
               >
                 취소
@@ -689,16 +656,12 @@ export default function PreviewPage() {
               <button
                 onClick={handleProcess}
                 disabled={
-                  uploadState.isUploading ||
+                  isUploading ||
                   !files.every((file) => file.processingOption !== null)
                 }
-                className={`
-                  px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-200
-                  bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50
-                  dark:bg-gradient-to-r dark:from-indigo-600 dark:to-violet-600 dark:hover:translate-y-[-1px] dark:hover:shadow-lg
-                `}
+                className="px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-200 bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 dark:bg-gradient-to-r dark:from-indigo-600 dark:to-violet-600 dark:hover:translate-y-[-1px] dark:hover:shadow-lg"
               >
-                {uploadState.stage === 'getting-url' ? (
+                {stage === 'getting-url' ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     준비 중...
