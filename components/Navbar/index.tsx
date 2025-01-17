@@ -1,18 +1,17 @@
 // components/Navbar/index.tsx
-import { Home, User } from 'lucide-react';
+import { Home, User, RocketIcon } from 'lucide-react';
 import Link from 'next/link';
 import DarkModeToggler from '../DarkModeToggler';
 import MobileNav from './MobileNav';
-import { RocketIcon } from 'lucide-react';
 import SignInButton from '../Btn/SignInButton';
 import Logo from '../Logo';
+
 const navItems = [
   {
     href: '/quickstart',
     label: 'Quick Start',
     icon: <RocketIcon className="w-5 h-5" />,
   },
-
   { href: '/', label: 'Home', icon: <Home className="w-8 h-8" /> },
   { href: '/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
 ];
@@ -23,7 +22,6 @@ export default function Navbar() {
       <header
         className="fixed top-0 inset-x-0 h-16 z-50
         bg-white dark:bg-[#111111]
-        
         transition-colors duration-200"
       >
         <div
@@ -31,7 +29,9 @@ export default function Navbar() {
           flex items-center justify-between"
         >
           {/* Logo */}
-          <Logo />
+          <div className="flex-shrink-0">
+            <Logo />
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">

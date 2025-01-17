@@ -5,7 +5,7 @@ const Logo = () => (
   <Link href="/" className="flex items-center gap-1">
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 500 100"
+      viewBox="0 0 300 100"
       className="h-20"
     >
       <defs>
