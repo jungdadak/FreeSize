@@ -2,8 +2,8 @@
 import { useTransformStore } from '@/store/transformStore';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
+import { useFileUpload } from '@/services/uploadService';
+import { useUploadStore } from '@/store/uploadStore';
 import { useFileStore, FileItem } from '@/store/fileStore';
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
@@ -95,29 +95,6 @@ function SwiperNavigation({ totalFiles }: { totalFiles: number }) {
   );
 }
 
-// ------------------- S3 업로드 함수 -------------------
-async function uploadFileToS3UsingAxios(
-  presignedUrl: string,
-  fields: Record<string, string>,
-  file: File,
-  onProgress?: (percent: number) => void
-) {
-  const formData = new FormData();
-  Object.entries(fields).forEach(([k, v]) => {
-    formData.append(k, v);
-  });
-  formData.append('file', file);
-
-  await axios.post(presignedUrl, formData, {
-    onUploadProgress: (event) => {
-      if (event.total) {
-        const percent = Math.round((event.loaded * 100) / event.total);
-        onProgress?.(percent);
-      }
-    },
-  });
-}
-
 // ------------------- 이미지 사이즈 업데이트 -------------------
 function setFileDimensions(index: number, width: number, height: number) {
   useFileStore.getState().updateFile(index, {
@@ -128,6 +105,8 @@ function setFileDimensions(index: number, width: number, height: number) {
 // ------------------- 메인 컴포넌트 -------------------
 export default function PreviewPage() {
   const router = useRouter();
+  const uploadMutation = useFileUpload();
+  const uploadState = useUploadStore();
 
   const {
     files,
@@ -136,10 +115,6 @@ export default function PreviewPage() {
     resetFileStore,
     setProcessingOption,
   } = useFileStore();
-
-  const [isUploading, setIsUploading] = useState(false);
-  const [currentFileIndex, setCurrentFileIndex] = useState(0);
-  const [currentFileProgress, setCurrentFileProgress] = useState(0);
 
   const totalFiles = useMemo(() => files.length, [files]);
   const totalSize = useMemo(() => {
@@ -219,92 +194,39 @@ export default function PreviewPage() {
   const handleProcess = async () => {
     if (files.length === 0) return;
 
-    const hasProcessingOptions = files.some(
+    const hasProcessingOptions = files.every(
       (file) => file.processingOption !== null
     );
     if (!hasProcessingOptions) {
       setUploadStatus({
         stage: 'idle',
-        error: '처리 옵션을 최소 하나 이상 선택해주세요.',
+        error: '처리 옵션을 모두 선택해주세요.',
       });
       return;
     }
 
     try {
-      setUploadStatus({ stage: 'getting-url' });
-      setIsUploading(true);
-      setCurrentFileIndex(0);
-      setCurrentFileProgress(0);
-
-      // presigned url + s3Key 가져오기
-      const presignedRequests = files.map(async (fileItem) => {
-        const filename = encodeURIComponent(fileItem.file.name);
-        const res = await fetch(`/api/image?file=${filename}`, {
-          method: 'GET',
-        });
-        if (!res.ok) {
-          throw new Error(
-            `파일 업로드 URL을 가져오지 못했습니다: ${fileItem.file.name}`
-          );
-        }
-        const presignedData = await res.json();
-        if (!presignedData.success) {
-          throw new Error(
-            presignedData.error ||
-              `파일 업로드 URL을 가져오지 못했습니다: ${fileItem.file.name}`
-          );
-        }
-        return {
-          fileItem,
-          presigned: presignedData.data.presigned,
-          s3Key: presignedData.data.s3Key,
-        };
-      });
-
-      const presignedResults = await Promise.all(presignedRequests);
-
-      // 파일 하나씩 S3 업로드
-      for (let i = 0; i < presignedResults.length; i++) {
-        const { fileItem, presigned } = presignedResults[i];
-        setCurrentFileIndex(i + 1);
-        setCurrentFileProgress(0);
-
-        await uploadFileToS3UsingAxios(
-          presigned.url,
-          presigned.fields,
-          fileItem.file,
-          (percent) => setCurrentFileProgress(percent)
-        );
-      }
-
-      // 업로드 완료 후 transform 페이지로 이동
-      setUploadStatus({ stage: 'idle', error: '' });
-      const transformDataArray = presignedResults.map(
-        ({ fileItem, s3Key }) => ({
-          s3Key,
-          processingOptions: fileItem.processingOption,
-          originalFileName: fileItem.file.name,
-          previewUrl: fileItem.previewUrl,
-          width: fileItem.dimensions?.width || 800,
-          height: fileItem.dimensions?.height || 600,
-        })
+      const results = await uploadMutation.mutateAsync(
+        files.map((f) => f.file)
       );
 
+      // 업로드 완료 후 transform 페이지로 이동
+      const transformDataArray = results.map((result, index) => ({
+        s3Key: result.s3Key,
+        processingOptions: files[index].processingOption,
+        originalFileName: files[index].file.name,
+        previewUrl: files[index].previewUrl,
+        width: files[index].dimensions?.width || 800,
+        height: files[index].dimensions?.height || 600,
+      }));
+
       // Transform 스토어에 데이터 설정
-      await useTransformStore.getState().setTransformData(transformDataArray);
+      useTransformStore.getState().setTransformData(transformDataArray);
 
       // Transform 페이지로 이동
       router.push('/transform');
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === 'string'
-          ? error
-          : '알 수 없는 오류가 발생했습니다.';
-
-      setUploadStatus({ stage: 'idle', error: errorMessage });
-      setIsUploading(false);
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
   };
 
@@ -726,29 +648,25 @@ export default function PreviewPage() {
               </div>
             )}
 
-            {/* 업로드 진행 상황 */}
-            {isUploading && (
-              <div
-                className={`
-                  mt-6 p-6 rounded-lg
-                  bg-indigo-100 
-                  dark:bg-indigo-900/20
-                `}
-              >
+            {/* 업로드 진행 상황 - 수정된 부분 */}
+            {uploadState.isUploading && (
+              <div className="mt-6 p-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400" />
                   <div className="space-y-1 text-center">
                     <p className="text-indigo-600 dark:text-indigo-400">
-                      파일 업로드 중 {currentFileIndex} / {files.length}
+                      {uploadState.stage === 'getting-url'
+                        ? '업로드 준비 중...'
+                        : `파일 업로드 중 ${uploadState.currentFileIndex} / ${files.length}`}
                     </p>
                     <div className="w-full bg-indigo-200 dark:bg-indigo-900 rounded-full h-2">
                       <div
                         className="bg-indigo-600 dark:bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${currentFileProgress}%` }}
+                        style={{ width: `${uploadState.currentFileProgress}%` }}
                       />
                     </div>
                     <p className="text-sm text-indigo-600 dark:text-indigo-400">
-                      {currentFileProgress}% 완료
+                      {uploadState.currentFileProgress}% 완료
                     </p>
                   </div>
                 </div>
@@ -771,8 +689,8 @@ export default function PreviewPage() {
               <button
                 onClick={handleProcess}
                 disabled={
-                  uploadStatus.stage !== 'idle' ||
-                  !files.some((file) => file.processingOption !== null)
+                  uploadState.isUploading ||
+                  !files.every((file) => file.processingOption !== null)
                 }
                 className={`
                   px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all duration-200
@@ -780,7 +698,7 @@ export default function PreviewPage() {
                   dark:bg-gradient-to-r dark:from-indigo-600 dark:to-violet-600 dark:hover:translate-y-[-1px] dark:hover:shadow-lg
                 `}
               >
-                {uploadStatus.stage === 'getting-url' ? (
+                {uploadState.stage === 'getting-url' ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     준비 중...

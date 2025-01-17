@@ -15,6 +15,8 @@ export default function TransformPage() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('Current transformData:', transformData);
+
     if (!transformData || transformData.length === 0) {
       // transformData가 없으면 메인 페이지로 리디렉션
       router.push('/');

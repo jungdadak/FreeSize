@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { Providers } from './providers';
 
 // Import Swiper's CSS
 import 'swiper/css';
@@ -42,7 +43,9 @@ export default async function RootLayout({
         transition-colors duration-200`}
       >
         <Navbar />
-        <div className="container mx-auto text-center">{children}</div>
+        <Providers>
+          <div className="container mx-auto text-center">{children}</div>
+        </Providers>
       </body>
     </html>
   );
