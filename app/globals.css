@@ -49,3 +49,54 @@ body {
 .dark .swiper-pagination-bullet-active {
   background-color: #818cf8;
 }
+/* 슬라이더 핸들 커스터마이징 - 웹킷 기반 브라우저 (Chrome, Safari 등) */
+input[type='range']::-webkit-slider-thumb {
+  appearance: none; /* 기본 스타일 제거 */
+  width: 15px; /* 핸들의 너비 반으로 감소 */
+  height: 15px; /* 핸들의 높이 반으로 감소 */
+  background: white; /* 핸들의 배경색 */
+  border: 1px solid #019863; /* 핸들의 테두리 반으로 감소 */
+  border-radius: 50%; /* 원형 모양 */
+  cursor: pointer; /* 커서 모양 */
+  margin-top: -6px; /* 트랙 중앙에 맞추기 (반으로 줄였으므로 조정 필요) */
+}
+
+/* 슬라이더 트랙 제거 (필요 시) */
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px; /* 트랙의 높이 */
+  background: transparent; /* 트랙 배경색 */
+}
+
+/* 슬라이더 핸들 커스터마이징 - 파이어폭스 */
+input[type='range']::-moz-range-thumb {
+  width: 15px; /* 핸들의 너비 반으로 감소 */
+  height: 15px; /* 핸들의 높이 반으로 감소 */
+  background: white; /* 핸들의 배경색 */
+  border: 1px solid #019863; /* 핸들의 테두리 반으로 감소 */
+  border-radius: 50%; /* 원형 모양 */
+  cursor: pointer; /* 커서 모양 */
+}
+
+/* 슬라이더 트랙 커스터마이징 - 파이어폭스 */
+input[type='range']::-moz-range-track {
+  height: 4px; /* 트랙의 높이 */
+  background: transparent; /* 트랙 배경색 */
+}
+
+/* 슬라이더 핸들 커스터마이징 - 엣지 및 기타 브라우저 */
+input[type='range']::-ms-thumb {
+  width: 15px; /* 핸들의 너비 반으로 감소 */
+  height: 15px; /* 핸들의 높이 반으로 감소 */
+  background: white; /* 핸들의 배경색 */
+  border: 1px solid #019863; /* 핸들의 테두리 반으로 감소 */
+  border-radius: 50%; /* 원형 모양 */
+  cursor: pointer; /* 커서 모양 */
+}
+
+/* 슬라이더 트랙 커스터마이징 - 엣지 및 기타 브라우저 */
+input[type='range']::-ms-track {
+  height: 4px; /* 트랙의 높이 */
+  background: transparent; /* 트랙 배경색 */
+  border: none; /* 트랙 테두리 제거 */
+  color: transparent; /* 트랙 색상 제거 */
+}

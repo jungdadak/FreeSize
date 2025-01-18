@@ -18,11 +18,15 @@ interface ImageInfo {
   size: string;
 }
 
-export default function TransformResult() {
+export default function EnhancedImageResultPage() {
   const { transformData, showResults } = useTransformStore();
   const router = useRouter();
   const [imageInfos, setImageInfos] = useState<Record<string, ImageInfo>>({});
-  const [compareMode, setCompareMode] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [searchQuery] = useState('');
+  const [selectedImage, setSelectedImage] = useState<TransformData | null>(
+    null
+  );
 
   useEffect(() => {
     if (!transformData || !showResults) {
@@ -60,6 +64,15 @@ export default function TransformResult() {
       }
 
       setImageInfos(infos);
+      setLoading(false);
+
+      // Initialize the selected image with the first available processed image
+      const firstProcessed = transformData.find(
+        (item) => item.processedImageUrl
+      );
+      if (firstProcessed) {
+        setSelectedImage(firstProcessed);
+      }
     };
 
     loadImageInfos();
@@ -85,7 +98,7 @@ export default function TransformResult() {
 
     switch (method) {
       case 'upscale':
-        option = ` ${item.processingOptions.factor}`;
+        option = ` x${item.processingOptions.factor}`;
         break;
       case 'uncrop':
         option = ` ${item.processingOptions.aspectRatio}`;
@@ -93,6 +106,8 @@ export default function TransformResult() {
       case 'square':
         option = '';
         break;
+      default:
+        option = '';
     }
 
     return `${method.toUpperCase()}${option}`;
@@ -100,78 +115,86 @@ export default function TransformResult() {
 
   if (!transformData) return null;
 
+  // Filter transformData based on search query
+  const filteredData = transformData.filter((item) =>
+    item.originalFileName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="container mx-auto p-4 bg-white dark:bg-black">
-      <div className="mb-8">
-        <button
-          onClick={() => router.push('/transform')}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          돌아가기
-        </button>
-        <h1 className="text-2xl font-bold">이미지 처리 결과</h1>
-      </div>
+    <div className="min-h-screen bg-[#121212] text-white p-6">
+      {/* Main Content */}
+      <main>
+        <div className="flex items-center mb-8">
+          <button
+            onClick={() => router.push('/transform')}
+            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200 mr-4"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            돌아가기
+          </button>
+          <h1 className="text-3xl font-semibold">Image Enhancements</h1>
+        </div>
 
-      <div className="grid gap-8">
-        {transformData.map((item: TransformData, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md p-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold mb-2">
-                {item.originalFileName}
-              </h2>
-              <div className="flex gap-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {getProcessingText(item)}
-                </span>
-                <button
-                  onClick={() =>
-                    setCompareMode((prev) => ({
-                      ...prev,
-                      [item.originalFileName]: !prev[item.originalFileName],
-                    }))
-                  }
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  {compareMode[item.originalFileName]
-                    ? '분할 보기'
-                    : '슬라이더로 비교'}
-                </button>
-              </div>
-            </div>
-
-            {item.error ? (
-              <div className="p-4 bg-red-50 text-red-600 rounded-lg">
-                처리 실패: {item.error}
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {/* 분할 보기 */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* 원본 이미지 */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">원본</p>
-                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <svg
+              className="animate-spin h-10 w-10 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+          </div>
+        ) : (
+          <>
+            {/* Selected Image Details */}
+            {selectedImage ? (
+              <div className="mb-8">
+                {/* Before and After Images with Slider */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Original Image */}
+                  <div className="flex flex-col">
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                      원본
+                    </h3>
+                    <div className="relative h-64 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                       <Image
-                        src={item.previewUrl}
-                        alt="원본"
+                        src={selectedImage.previewUrl}
+                        alt="원본 이미지"
                         fill
                         className="object-contain"
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
-                        {imageInfos[`original_${item.originalFileName}`] && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
+                        {imageInfos[
+                          `original_${selectedImage.originalFileName}`
+                        ] && (
                           <>
                             <p>
                               {formatDimensions(
-                                imageInfos[`original_${item.originalFileName}`]
-                                  .dimensions
+                                imageInfos[
+                                  `original_${selectedImage.originalFileName}`
+                                ].dimensions
                               )}
                             </p>
                             <p>
                               {
-                                imageInfos[`original_${item.originalFileName}`]
-                                  .size
+                                imageInfos[
+                                  `original_${selectedImage.originalFileName}`
+                                ].size
                               }
                             </p>
                           </>
@@ -180,36 +203,38 @@ export default function TransformResult() {
                     </div>
                   </div>
 
-                  {/* 처리된 이미지 */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">처리 결과</p>
-                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
-                      {item.processedImageUrl ? (
+                  {/* Enhanced Image */}
+                  <div className="flex flex-col">
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                      처리 결과
+                    </h3>
+                    <div className="relative h-64 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                      {selectedImage.processedImageUrl ? (
                         <>
                           <Image
-                            src={item.processedImageUrl}
-                            alt="처리 결과"
+                            src={selectedImage.processedImageUrl}
+                            alt="처리된 이미지"
                             fill
                             className="object-contain"
                             sizes="(max-width: 768px) 100vw, 50vw"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
-                            <p>{getProcessingText(item)}</p>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
+                            <p>{getProcessingText(selectedImage)}</p>
                             {imageInfos[
-                              `processed_${item.originalFileName}`
+                              `processed_${selectedImage.originalFileName}`
                             ] && (
                               <>
                                 <p>
                                   {formatDimensions(
                                     imageInfos[
-                                      `processed_${item.originalFileName}`
+                                      `processed_${selectedImage.originalFileName}`
                                     ].dimensions
                                   )}
                                 </p>
                                 <p>
                                   {
                                     imageInfos[
-                                      `processed_${item.originalFileName}`
+                                      `processed_${selectedImage.originalFileName}`
                                     ].size
                                   }
                                 </p>
@@ -218,7 +243,7 @@ export default function TransformResult() {
                           </div>
                         </>
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                           처리 결과 없음
                         </div>
                       )}
@@ -226,35 +251,86 @@ export default function TransformResult() {
                   </div>
                 </div>
 
-                {/* 슬라이더 비교 */}
-                {item.processedImageUrl && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">슬라이더로 비교</p>
+                {/* Image Compare Slider */}
+                {selectedImage.processedImageUrl && (
+                  <div className="mt-4">
                     <ImageCompareSlider
-                      beforeImage={item.previewUrl}
-                      afterImage={item.processedImageUrl}
+                      className="max-w-[700px] m-auto"
+                      beforeImage={selectedImage.previewUrl}
+                      afterImage={selectedImage.processedImageUrl}
                       beforeLabel={`원본 (${
-                        imageInfos[`original_${item.originalFileName}`]
+                        imageInfos[`original_${selectedImage.originalFileName}`]
                           ?.dimensions.width
                       }x${
-                        imageInfos[`original_${item.originalFileName}`]
+                        imageInfos[`original_${selectedImage.originalFileName}`]
                           ?.dimensions.height
                       })`}
-                      afterLabel={`${getProcessingText(item)} (${
-                        imageInfos[`processed_${item.originalFileName}`]
-                          ?.dimensions.width
+                      afterLabel={`${getProcessingText(selectedImage)} (${
+                        imageInfos[
+                          `processed_${selectedImage.originalFileName}`
+                        ]?.dimensions.width
                       }x${
-                        imageInfos[`processed_${item.originalFileName}`]
-                          ?.dimensions.height
+                        imageInfos[
+                          `processed_${selectedImage.originalFileName}`
+                        ]?.dimensions.height
                       })`}
                     />
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="mb-8 text-center text-gray-500">
+                선택된 이미지가 없습니다.
+              </div>
             )}
-          </div>
-        ))}
-      </div>
+
+            {/* Details Button */}
+            <div className="w-[50%] bg-[#1E1E1E] text-white mt-10 py-3 rounded-lg mb-8">
+              Queue
+            </div>
+
+            {/* Image Grid */}
+            <div className="grid grid-cols-5 gap-4">
+              {filteredData.map((item: TransformData, index) => (
+                <div
+                  key={index}
+                  className={`space-y-2 cursor-pointer border-2 ${
+                    selectedImage?.originalFileName === item.originalFileName
+                      ? 'border-blue-500'
+                      : 'border-transparent'
+                  } rounded-lg p-1`}
+                  onClick={() => setSelectedImage(item)}
+                >
+                  {item.processedImageUrl ? (
+                    <Image
+                      src={item.processedImageUrl}
+                      alt={`Image ${index + 1}`}
+                      width={240}
+                      height={320}
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-[#2E2E2E] rounded-lg flex items-center justify-center">
+                      <span className="text-gray-500">No Image</span>
+                    </div>
+                  )}
+                  <div className="text-sm">{item.originalFileName}</div>
+                  <button
+                    className="w-full bg-[#1E1E1E] text-white py-2 rounded-lg text-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Implement your "Next" functionality here
+                      console.log(`Next clicked for ${item.originalFileName}`);
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
     </div>
   );
 }
