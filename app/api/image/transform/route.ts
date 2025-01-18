@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     const squareData: FormData[] = [];
     const upscaleData: FormData[] = [];
 
+    // entries를 3개씩 그룹화 (file, metadata, method)
     for (let i = 0; i < entries.length; i += 3) {
       const method = formData.get(`method_${Math.floor(i / 3)}`) as string;
       const file = formData.get(`file_${Math.floor(i / 3)}`) as File;

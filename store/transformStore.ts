@@ -8,21 +8,21 @@ export interface TransformData {
   previewUrl: string;
   width: number;
   height: number;
-  processedImageUrl?: string; // 처리된 이미지 URL
-  error?: string; // 에러 메시지
+  processedImageUrl?: string;
+  error?: string;
 }
 
 export interface TransformState {
+  // 기존 상태
   transformData: TransformData[] | null;
-  currentProcessingIndex: number; // 현재 처리 중인 이미지 인덱스
-  totalProcessed: number; // 총 처리된 이미지 수
-  processing: boolean; // 처리 중 여부
+  currentProcessingIndex: number;
+  totalProcessed: number;
+  processing: boolean;
+  showResults: boolean; // 결과 화면 표시 여부
 
-  // 기존 메서드
+  // 액션
   setTransformData: (data: TransformData[]) => void;
   resetTransformData: () => void;
-
-  // 새로운 메서드들
   updateProcessingStatus: (
     index: number,
     processedImageUrl?: string,
@@ -33,28 +33,29 @@ export interface TransformState {
     current?: number,
     total?: number
   ) => void;
+  setShowResults: (show: boolean) => void;
 }
 
 export const useTransformStore = create<TransformState>((set) => ({
-  // 기존 상태
+  // 상태 초기값
   transformData: null,
-
-  // 새로운 상태
   currentProcessingIndex: 0,
   totalProcessed: 0,
   processing: false,
+  showResults: false,
 
-  // 기존 메서드
+  // 액션 정의
   setTransformData: (data) => set({ transformData: data }),
+
   resetTransformData: () =>
     set({
       transformData: null,
       currentProcessingIndex: 0,
       totalProcessed: 0,
       processing: false,
+      showResults: false,
     }),
 
-  // 새로운 메서드들
   updateProcessingStatus: (index, processedImageUrl, error) =>
     set((state) => ({
       transformData: state.transformData
@@ -70,4 +71,6 @@ export const useTransformStore = create<TransformState>((set) => ({
       currentProcessingIndex: current,
       totalProcessed: total,
     }),
+
+  setShowResults: (show) => set({ showResults: show }),
 }));

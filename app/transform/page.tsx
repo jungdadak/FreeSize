@@ -24,14 +24,19 @@ type ProcessingOption = UncropOption | SquareOption | UpscaleOption;
 interface TransformItem {
   originalFileName: string;
   previewUrl: string;
-  processingOptions: ProcessingOption | null; // null 허용으로 변경
+  processingOptions: ProcessingOption | null;
   s3Key: string;
   width: number;
   height: number;
 }
 
 export default function TransformPage() {
-  const { transformData } = useTransformStore();
+  const {
+    transformData,
+    updateProcessingStatus,
+    setProcessingStatus,
+    setShowResults,
+  } = useTransformStore();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,23 +53,20 @@ export default function TransformPage() {
     try {
       setIsLoading(true);
       setError(null);
+      setProcessingStatus(true, 0, 0);
 
-      // 모든 데이터를 하나의 FormData로 구성
       const formData = new FormData();
 
       await Promise.all(
         transformData.map(async (item: TransformItem, index) => {
-          if (!item.processingOptions) return; // processingOptions가 null인 경우 처리 중단
+          if (!item.processingOptions) return;
 
-          // Blob 가져오기
           const response = await fetch(item.previewUrl);
           const blob = await response.blob();
 
-          // 각 파일마다 고유한 키로 데이터 추가
           formData.append(`file_${index}`, blob, item.originalFileName);
           formData.append(`method_${index}`, item.processingOptions.method);
 
-          // 메타데이터 구성
           const metadata = {
             s3Key: item.s3Key,
             width: item.width,
@@ -91,12 +93,42 @@ export default function TransformPage() {
         body: formData,
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error('Transform API 요청 실패');
+        throw new Error(responseData.error || 'Transform API 요청 실패');
       }
 
-      const result = await response.json();
-      console.log('✨ Transform 응답:', result);
+      const { results } = responseData;
+
+      // 각 결과를 매핑하여 저장
+      let processedCount = 0;
+      transformData.forEach((item, index) => {
+        if (!item.processingOptions) return;
+
+        const result = results[processedCount];
+        processedCount++;
+
+        if (result.success) {
+          // base64 이미지 URL 생성
+          const imageUrl = `data:image/jpeg;base64,${
+            'uncrop_img' in result ? result.uncrop_img : result.resized_img
+          }`;
+          updateProcessingStatus(index, imageUrl);
+          setProcessingStatus(true, index, processedCount);
+        } else {
+          updateProcessingStatus(
+            index,
+            undefined,
+            result.message || '이미지 처리 실패'
+          );
+        }
+      });
+
+      // 처리 완료 후 결과 페이지로 이동
+      setShowResults(true);
+      setProcessingStatus(false);
+      router.push('/transform/result');
     } catch (error) {
       console.error('❌ Transform 에러:', error);
       setError(
@@ -104,6 +136,8 @@ export default function TransformPage() {
           ? error.message
           : '이미지 처리 중 오류가 발생했습니다.'
       );
+      setProcessingStatus(false);
+      setShowResults(false);
     } finally {
       setIsLoading(false);
     }
