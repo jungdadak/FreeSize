@@ -5,6 +5,31 @@ import { useTransformStore } from '@/store/transformStore';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
+type UncropOption = {
+  method: 'uncrop';
+  aspectRatio: '1:1' | '1:2' | '2:1';
+};
+
+type SquareOption = {
+  method: 'square';
+};
+
+type UpscaleOption = {
+  method: 'upscale';
+  factor: 'x1' | 'x2' | 'x4';
+};
+
+type ProcessingOption = UncropOption | SquareOption | UpscaleOption;
+
+interface TransformItem {
+  originalFileName: string;
+  previewUrl: string;
+  processingOptions: ProcessingOption | null; // null 허용으로 변경
+  s3Key: string;
+  width: number;
+  height: number;
+}
+
 export default function TransformPage() {
   const { transformData } = useTransformStore();
   const router = useRouter();
@@ -17,7 +42,6 @@ export default function TransformPage() {
     }
   }, [transformData, router]);
 
-  // page.tsx
   const sendTransformData = async () => {
     if (!transformData) return;
 
@@ -25,26 +49,38 @@ export default function TransformPage() {
       setIsLoading(true);
       setError(null);
 
-      // 여기서 먼저 모든 blob을 base64로 변환
-      const dataWithBase64 = await Promise.all(
-        transformData.map(async (item) => {
+      // 모든 데이터를 하나의 FormData로 구성
+      const formData = new FormData();
+
+      await Promise.all(
+        transformData.map(async (item: TransformItem, index) => {
+          if (!item.processingOptions) return; // processingOptions가 null인 경우 처리 중단
+
+          // Blob 가져오기
           const response = await fetch(item.previewUrl);
           const blob = await response.blob();
 
-          const base64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64data = reader.result?.toString().split(',')[1];
-              resolve(base64data || '');
-            };
-            reader.readAsDataURL(blob);
-          });
+          // 각 파일마다 고유한 키로 데이터 추가
+          formData.append(`file_${index}`, blob, item.originalFileName);
+          formData.append(`method_${index}`, item.processingOptions.method);
 
-          // previewUrl 대신 base64 문자열 전달
-          return {
-            ...item,
-            base64Image: base64, // previewUrl 대신 이것을 사용
+          // 메타데이터 구성
+          const metadata = {
+            s3Key: item.s3Key,
+            width: item.width,
+            height: item.height,
+            ...(item.processingOptions.method === 'uncrop'
+              ? {
+                  aspectRatio: (item.processingOptions as UncropOption)
+                    .aspectRatio,
+                }
+              : {}),
+            ...(item.processingOptions.method === 'upscale'
+              ? { factor: (item.processingOptions as UpscaleOption).factor }
+              : {}),
           };
+
+          formData.append(`metadata_${index}`, JSON.stringify(metadata));
         })
       );
 
@@ -52,8 +88,7 @@ export default function TransformPage() {
 
       const response = await fetch('/api/image/transform', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataWithBase64),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -88,7 +123,7 @@ export default function TransformPage() {
         )}
 
         <div className="space-y-2 mb-4">
-          {transformData?.map((item, index) => (
+          {transformData?.map((item: TransformItem, index) => (
             <div
               key={index}
               className="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
@@ -98,9 +133,11 @@ export default function TransformPage() {
                 <p className="text-sm text-gray-500">
                   처리: {item.processingOptions.method}
                   {item.processingOptions.method === 'uncrop' &&
-                    ` (${item.processingOptions.aspectRatio})`}
+                    ` (${
+                      (item.processingOptions as UncropOption).aspectRatio
+                    })`}
                   {item.processingOptions.method === 'upscale' &&
-                    ` (${item.processingOptions.factor})`}
+                    ` (${(item.processingOptions as UpscaleOption).factor})`}
                 </p>
               )}
             </div>
