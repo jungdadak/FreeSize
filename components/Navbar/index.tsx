@@ -61,7 +61,7 @@ export default function Navbar() {
       </header>
       {/* Spacers for fixed elements */}
       <div className="h-16" /> {/* Top navbar spacer */}
-      <div className="h-16 md:h-0" /> {/* Bottom mobile navigation spacer */}
+      <div className=" md:h-16" /> {/* Bottom mobile navigation spacer */}
     </>
   );
 }

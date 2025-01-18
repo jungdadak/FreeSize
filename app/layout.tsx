@@ -32,7 +32,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const themeFromCookie = (await cookies()).get('theme');
-  // Use 'dark' as the default theme if no cookie is found
   const theme = themeFromCookie?.value || 'dark';
 
   return (
@@ -42,9 +41,15 @@ export default async function RootLayout({
         bg-white dark:bg-black text-gray-900 dark:text-gray-100
         transition-colors duration-200`}
       >
-        <Navbar />
         <Providers>
-          <div className="container mx-auto text-center">{children}</div>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow lg:pt-16 pb-16">
+              {' '}
+              {/* Navbar의 높이만큼 padding-top 추가 */}
+              <div className="container mx-auto">{children}</div>
+            </main>
+          </div>
         </Providers>
       </body>
     </html>

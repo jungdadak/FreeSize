@@ -155,7 +155,7 @@ export default function MobileNav() {
           }
         `}
       >
-        <nav className="h-full flex flex-col items-center px-6 pt-20 pb-32">
+        <nav className="h-full flex flex-col items-center px-6 ">
           <ul className="flex flex-col items-center gap-8 mb-12">
             {navItems.map((item) => (
               <li key={item.href}>

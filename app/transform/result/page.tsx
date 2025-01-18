@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft } from 'lucide-react';
 import { useTransformStore } from '@/store/transformStore';
 import type { TransformData } from '@/store/transformStore';
 import {
@@ -121,17 +120,10 @@ export default function EnhancedImageResultPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white p-6">
+    <div className=" bg-[#121212] text-white">
       {/* Main Content */}
       <main>
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => router.push('/transform')}
-            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200 mr-4"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            돌아가기
-          </button>
+        <div className="flex items-center mb-4">
           <h1 className="text-3xl font-semibold">Image Enhancements</h1>
         </div>
 
@@ -285,41 +277,44 @@ export default function EnhancedImageResultPage() {
             )}
 
             {/* Details Button */}
-            <div className="w-[50%] bg-[#1E1E1E] text-white mt-10 py-3 rounded-lg mb-8">
+            <div className="w-[40%] bg-[#1E1E1E] text-white mt-10 py-3 rounded-lg mb-8">
               Queue
             </div>
 
             {/* Image Grid */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-5 gap-2 max-w-4xl mx-auto">
               {filteredData.map((item: TransformData, index) => (
                 <div
                   key={index}
-                  className={`space-y-2 cursor-pointer border-2 ${
+                  className={`space-y-1.5 cursor-pointer border-2 ${
                     selectedImage?.originalFileName === item.originalFileName
-                      ? 'border-blue-500'
+                      ? 'border-green-500'
                       : 'border-transparent'
-                  } rounded-lg p-1`}
+                  } rounded-lg p-1 w-36`}
                   onClick={() => setSelectedImage(item)}
                 >
-                  {item.processedImageUrl ? (
-                    <Image
-                      src={item.processedImageUrl}
-                      alt={`Image ${index + 1}`}
-                      width={240}
-                      height={320}
-                      className="w-full h-40 object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-40 bg-[#2E2E2E] rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500">No Image</span>
-                    </div>
-                  )}
-                  <div className="text-sm">{item.originalFileName}</div>
+                  <div className="relative aspect-[3/4] w-full">
+                    {item.processedImageUrl ? (
+                      <Image
+                        src={item.processedImageUrl}
+                        alt={`Image ${index + 1}`}
+                        fill
+                        sizes="(max-width: 144px) 100vw, 144px"
+                        className="object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#2E2E2E] rounded-lg flex items-center justify-center">
+                        <span className="text-gray-500 text-xs">No Image</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-xs truncate px-1">
+                    {item.originalFileName}
+                  </div>
                   <button
-                    className="w-full bg-[#1E1E1E] text-white py-2 rounded-lg text-sm"
+                    className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1.5 rounded-lg text-xs transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Implement your "Next" functionality here
                       console.log(`Next clicked for ${item.originalFileName}`);
                     }}
                   >
