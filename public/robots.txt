@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://freesize.vercel.app
+
+# Sitemaps
+Sitemap: https://freesize.vercel.app/sitemap.xml
