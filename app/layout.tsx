@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import { Providers } from './providers';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Import Swiper's CSS
 import 'swiper/css';
@@ -47,7 +48,9 @@ export default async function RootLayout({
             <main className="flex-grow lg:pt-16 pb-16">
               {' '}
               {/* Navbar의 높이만큼 padding-top 추가 */}
-              <div className="container mx-auto">{children}</div>
+              <div className="container mx-auto">
+                {children} <SpeedInsights />
+              </div>
             </main>
           </div>
         </Providers>
