@@ -21,6 +21,18 @@ export default function ImageCompareSlider({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [imageWidth, setImageWidth] = useState<number>(0);
+
+  // 이미지 로드 완료 시 실제 렌더링된 이미지의 너비를 계산
+  const handleImageLoad = useCallback(() => {
+    if (containerRef.current) {
+      const imgElement = containerRef.current.querySelector('img');
+      if (imgElement) {
+        const rect = imgElement.getBoundingClientRect();
+        setImageWidth(rect.width);
+      }
+    }
+  }, []);
 
   const handleMove = useCallback(
     (event: MouseEvent | TouchEvent) => {
@@ -98,6 +110,7 @@ export default function ImageCompareSlider({
             sizes="100vw"
             priority
             draggable="false"
+            onLoadingComplete={handleImageLoad}
           />
         </div>
 
@@ -121,9 +134,13 @@ export default function ImageCompareSlider({
         </div>
       </div>
 
-      {/* 슬라이더 컨트롤 */}
-      <div className="w-full mt-4 px-2">
-        <div className="relative">
+      {/* 슬라이더와 라벨을 포함하는 컨테이너 */}
+      <div
+        className="relative mt-4"
+        style={{ width: imageWidth > 0 ? `${imageWidth}px` : '100%' }}
+      >
+        {/* 슬라이더 컨트롤 */}
+        <div className="px-2">
           <input
             type="range"
             min="0"
@@ -136,15 +153,15 @@ export default function ImageCompareSlider({
             }}
           />
         </div>
-      </div>
 
-      {/* 라벨 */}
-      <div className="flex justify-between w-full mt-2 px-2">
-        <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
-          {beforeLabel}
-        </div>
-        <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
-          {afterLabel}
+        {/* 라벨 */}
+        <div className="flex justify-between w-full mt-2 px-2">
+          <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+            {beforeLabel}
+          </div>
+          <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+            {afterLabel}
+          </div>
         </div>
       </div>
     </div>
