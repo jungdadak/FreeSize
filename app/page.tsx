@@ -5,42 +5,45 @@ import Getstarted from "@/components/Btn/Getstarted-home";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-	title: "Free AI Image Enhancement Tools | Upscale, Uncrop & Square Images",
+	title:
+		"AI Image Processing Tools for LORA Training | Free Upscale, Uncrop & Square",
 	description:
-		"Free AI-powered image enhancement tools. Upscale images without quality loss, uncrop images using AI generation, and convert to perfect squares. Improve your images with advanced AI technology.",
+		"Prepare your LORA training dataset with our free AI tools. Upscale images for better quality, uncrop for composition, and convert to squares for consistent training. Perfect for preparing 20-50 images for LORA model training.",
 	keywords:
-		"AI image upscaling, image uncropping, square image converter, free AI image tools, image enhancement, AI image generation, image processing",
+		"LORA training, AI image processing, image dataset preparation, upscaling for LORA, image uncropping, square conversion, LORA model training, AI fine-tuning",
 	openGraph: {
-		title: "Free AI Image Enhancement Tools | Upscale, Uncrop & Square Images",
+		title:
+			"AI Image Processing Tools for LORA Training | Free Upscale, Uncrop & Square",
 		description:
-			"Transform your images with AI: Upscale resolution, uncrop using AI generation, and convert to perfect squares - all for free.",
+			"Prepare perfect LORA training datasets: Upscale for quality, uncrop for composition, and convert to squares. Ideal for processing 20-50 training images with AI technology - completely free.",
 		type: "website",
 		images: [
 			{
 				url: "/og-image.png",
 				width: 1200,
 				height: 630,
-				alt: "AI Image Enhancement Tools",
+				alt: "AI Image Processing Tools for LORA Training",
 			},
 		],
+		url: "/",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Free AI Image Enhancement Tools",
+		title: "Free AI Image Processing for LORA Training",
 		description:
-			"Upscale, uncrop, and square your images with AI technology - completely free.",
+			"Process your LORA training images with AI technology. Perfect for preparing 20-50 image datasets - completely free.",
 	},
 	alternates: {
-		canonical: "https://your-domain.com",
+		canonical: "https://freesize.vercel.app",
 	},
 };
 
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "SoftwareApplication",
-	name: "AI Image Enhancement Tools",
+	name: "FreeSizeAI - LORA Training Image Processor",
 	description:
-		"Free AI-powered image enhancement tools for upscaling, uncropping, and squaring images.",
+		"Free AI-powered tools for preparing LORA training image datasets. Process 20-50 images with upscaling, uncropping, and square conversion.",
 	applicationCategory: "AI Image Processing",
 	operatingSystem: "Any",
 	offers: {
@@ -49,9 +52,10 @@ const jsonLd = {
 		priceCurrency: "USD",
 	},
 	featureList: [
-		"AI image upscaling",
+		"AI image upscaling for LORA training",
 		"AI-powered image uncropping",
-		"Automatic square image conversion",
+		"Automatic square conversion for consistent datasets",
+		"Optimized for 20-50 image LORA training sets",
 	],
 };
 
