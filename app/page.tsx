@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 		description:
 			"Prepare perfect LORA training datasets: Upscale for quality, uncrop for composition, and convert to squares. Ideal for processing 20-50 training images with AI technology - completely free.",
 		type: "website",
+		url: "https://freesize.vercel.app",
 		images: [
 			{
 				url: "/og-image.png",
@@ -25,13 +26,13 @@ export const metadata: Metadata = {
 				alt: "AI Image Processing Tools for LORA Training",
 			},
 		],
-		url: "/",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Free AI Image Processing for LORA Training",
 		description:
 			"Process your LORA training images with AI technology. Perfect for preparing 20-50 image datasets - completely free.",
+		images: ["https://freesize.vercel.app/og-image.png"],
 	},
 	alternates: {
 		canonical: "https://freesize.vercel.app",

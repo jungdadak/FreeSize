@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 		description:
 			"Prepare your LORA training dataset in 3 steps. Process 20-50 images with free AI tools for optimal training results.",
 		type: "article",
+		url: "https://freesize.vercel.app/quickstart",
 		images: [
 			{
 				url: "/og-quickstart.png",
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
 				alt: "LORA Training Image Processing Guide",
 			},
 		],
-		url: "/quickstart",
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Get Started with LORA Training Image Processing",
 		description:
 			"Process your LORA training images in 3 simple steps - completely free.",
+		images: ["https://freesize.vercel.app/og-quickstart.png"],
 	},
 	alternates: {
 		canonical: "https://freesize.vercel.app/quickstart",
