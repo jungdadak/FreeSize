@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertTriangle } from "lucide-react";
 import { FileItem } from "@/store/fileStore";
