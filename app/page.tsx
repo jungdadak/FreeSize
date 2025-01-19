@@ -62,7 +62,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="h-full bg-gray-100 dark:bg-black transition-colors duration-500">
+      <div className="h-full bg-gray-100 dark:bg-[#1E1E1E] transition-colors duration-500">
         <main className="flex flex-col items-center justify-center text-center md:px-4 md:py-20 mt-16">
           <h1 className="font-extrabold text-5xl md:text-7xl lg:text-8xl text-gray-900 dark:text-white transition-colors duration-500">
             Enhance Images with AI

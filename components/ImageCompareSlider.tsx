@@ -86,7 +86,7 @@ export default function ImageCompareSlider({
     <div className={`flex flex-col items-center ${className}`}>
       <div
         ref={containerRef}
-        className="relative w-full aspect-video overflow-hidden rounded-lg bg-black dark:bg-black select-none"
+        className="relative w-full aspect-video overflow-hidden rounded-lg bg-[#1E1E1E] dark:bg-[#1E1E1E] select-none"
       >
         {/* 베이스 이미지 (처리 후) */}
         <div className="absolute inset-0 select-none">
@@ -140,10 +140,10 @@ export default function ImageCompareSlider({
 
       {/* 라벨 */}
       <div className="flex justify-between w-full mt-2 px-2">
-        <div className="bg-black/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+        <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
           {beforeLabel}
         </div>
-        <div className="bg-black/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+        <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
           {afterLabel}
         </div>
       </div>

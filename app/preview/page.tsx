@@ -324,7 +324,7 @@ export default function PreviewPage() {
                             className={`
                               absolute top-4 left-4 right-4 flex items-center justify-between px-4 py-2 rounded-lg
                               bg-gray-200/70 
-                              dark:bg-black/40
+                              dark:bg-[#1E1E1E]/40
                             `}
                           >
                             <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export default function PreviewPage() {
                               onClick={() => handleRemoveFile(index)}
                               className={`
                                 p-2 rounded-full text-white transition-all duration-200
-                                bg-black/40 hover:bg-black/60
+                                bg-[#1E1E1E]/40 hover:bg-[#1E1E1E]/60
                               `}
                               aria-label={`파일 ${fileItem.file.name} 제거`}
                             >
@@ -369,7 +369,7 @@ export default function PreviewPage() {
                               variant="secondary"
                               className={`
                                 bg-gray-200 text-gray-700 border border-gray-300
-                                dark:bg-black/40 dark:text-white
+                                dark:bg-[#1E1E1E]/40 dark:text-white
                               `}
                             >
                               {fileItem.dimensions
@@ -380,7 +380,7 @@ export default function PreviewPage() {
                               variant="secondary"
                               className={`
                                 bg-gray-200 text-gray-700 border border-gray-300
-                                dark:bg-black/40 dark:text-white
+                                dark:bg-[#1E1E1E]/40 dark:text-white
                               `}
                             >
                               {sizeMB} MB

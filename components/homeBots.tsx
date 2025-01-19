@@ -10,7 +10,7 @@ const HomeBots = () => {
           className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: 'url("/bgtemp.jpg")' }}
         />
-        <div className="absolute inset-0 bg-white/40 dark:bg-black/50" />
+        <div className="absolute inset-0 bg-white/40 dark:bg-[#1E1E1E]/50" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-24">
           <div className="text-center mb-12">

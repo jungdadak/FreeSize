@@ -97,7 +97,7 @@ export default function EnhancedImageResultPage() {
 
     switch (method) {
       case 'upscale':
-        option = ` x${item.processingOptions.factor}`;
+        option = ` ${item.processingOptions.factor}`;
         break;
       case 'uncrop':
         option = ` ${item.processingOptions.aspectRatio}`;
@@ -120,7 +120,7 @@ export default function EnhancedImageResultPage() {
   );
 
   return (
-    <div className=" bg-[#121212] text-white">
+    <div className=" bg-[#1e1e1e] text-white">
       {/* Main Content */}
       <main>
         <div className="flex items-center mb-4">
@@ -156,88 +156,93 @@ export default function EnhancedImageResultPage() {
             {selectedImage ? (
               <div className="mb-8">
                 {/* Before and After Images with Slider */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  {' '}
                   {/* Original Image */}
-                  <div className="flex flex-col">
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">
-                      원본
-                    </h3>
-                    <div className="relative h-64 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                      <Image
-                        src={selectedImage.previewUrl}
-                        alt="원본 이미지"
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
-                        {imageInfos[
-                          `original_${selectedImage.originalFileName}`
-                        ] && (
-                          <>
-                            <p>
-                              {formatDimensions(
-                                imageInfos[
-                                  `original_${selectedImage.originalFileName}`
-                                ].dimensions
-                              )}
-                            </p>
-                            <p>
-                              {
-                                imageInfos[
-                                  `original_${selectedImage.originalFileName}`
-                                ].size
-                              }
-                            </p>
-                          </>
-                        )}
+                  <div className="flex flex-col p-4">
+                    <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
+                      <div className="h-64 flex items-center justify-start">
+                        <Image
+                          src={selectedImage.previewUrl}
+                          alt="원본 이미지"
+                          width={0}
+                          height={256}
+                          className="h-64 w-auto rounded-xl"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          style={{ height: '256px', width: 'auto' }}
+                        />
                       </div>
                     </div>
-                  </div>
-
-                  {/* Enhanced Image */}
-                  <div className="flex flex-col">
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">
-                      처리 결과
-                    </h3>
-                    <div className="relative h-64 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                      {selectedImage.processedImageUrl ? (
+                    <div className="mt-3 space-y-1">
+                      <h3 className="text-sm font-medium text-gray-300 tracking-tight">
+                        {selectedImage.originalFileName}
+                      </h3>
+                      {imageInfos[
+                        `original_${selectedImage.originalFileName}`
+                      ] && (
                         <>
+                          <p className="text-xs text-gray-500 tracking-tight">
+                            {formatDimensions(
+                              imageInfos[
+                                `original_${selectedImage.originalFileName}`
+                              ].dimensions
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-400 tracking-tight">
+                            {
+                              imageInfos[
+                                `original_${selectedImage.originalFileName}`
+                              ].size
+                            }
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {/* Enhanced Image */}
+                  <div className="flex flex-col p-4">
+                    <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
+                      {selectedImage.processedImageUrl ? (
+                        <div className="h-64 flex items-center justify-start rounded-xl">
                           <Image
                             src={selectedImage.processedImageUrl}
                             alt="처리된 이미지"
-                            fill
-                            className="object-contain"
+                            width={0}
+                            height={256}
+                            className="h-64 w-auto rounded-xl"
                             sizes="(max-width: 768px) 100vw, 50vw"
+                            style={{ height: '256px', width: 'auto' }}
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
-                            <p>{getProcessingText(selectedImage)}</p>
-                            {imageInfos[
-                              `processed_${selectedImage.originalFileName}`
-                            ] && (
-                              <>
-                                <p>
-                                  {formatDimensions(
-                                    imageInfos[
-                                      `processed_${selectedImage.originalFileName}`
-                                    ].dimensions
-                                  )}
-                                </p>
-                                <p>
-                                  {
-                                    imageInfos[
-                                      `processed_${selectedImage.originalFileName}`
-                                    ].size
-                                  }
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </>
+                        </div>
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-start h-64 text-gray-500 dark:text-gray-400">
                           처리 결과 없음
                         </div>
+                      )}
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      <h3 className="text-sm font-medium text-gray-300 tracking-tight">
+                        {getProcessingText(selectedImage)}
+                      </h3>
+                      {imageInfos[
+                        `processed_${selectedImage.originalFileName}`
+                      ] && (
+                        <>
+                          <p className="text-xs text-gray-500 tracking-tight">
+                            {formatDimensions(
+                              imageInfos[
+                                `processed_${selectedImage.originalFileName}`
+                              ].dimensions
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-400 tracking-tight">
+                            {
+                              imageInfos[
+                                `processed_${selectedImage.originalFileName}`
+                              ].size
+                            }
+                          </p>
+                        </>
                       )}
                     </div>
                   </div>
@@ -277,12 +282,12 @@ export default function EnhancedImageResultPage() {
             )}
 
             {/* Details Button */}
-            <div className="w-[40%] bg-[#1E1E1E] text-white mt-10 py-3 rounded-lg mb-8">
+            <div className="w-[40%] text-center font-bold bg-[#1E1E1E] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
               Queue
             </div>
 
             {/* Image Grid */}
-            <div className="grid grid-cols-5 gap-2 max-w-4xl mx-auto">
+            <div className="grid grid-cols-5 gap-2 max-w-4xl mx-5 p-3">
               {filteredData.map((item: TransformData, index) => (
                 <div
                   key={index}
