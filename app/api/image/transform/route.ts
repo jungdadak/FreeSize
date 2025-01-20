@@ -42,10 +42,10 @@ export async function POST(request: Request) {
       const newFormData = new FormData();
       newFormData.append('file', file);
 
-      // 공통 메타데이터 추가
-      newFormData.append('s3Key', metadata.s3Key);
-      newFormData.append('width', metadata.width.toString());
-      newFormData.append('height', metadata.height.toString());
+      // 공통 메타데이터 추가 todo
+      // newFormData.append('s3Key', metadata.s3Key);
+      // newFormData.append('width', metadata.width.toString());
+      // newFormData.append('height', metadata.height.toString());
 
       switch (method) {
         case 'uncrop':
