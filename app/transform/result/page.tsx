@@ -12,6 +12,7 @@ import {
 } from '@/utils/image';
 import ImageCompareSlider from '@/components/ImageCompareSlider';
 import { useFileUpload } from '@/services/uploadService';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
 
@@ -63,6 +64,7 @@ export default function EnhancedImageResultPage() {
   const { transformData } = useTransformStore();
   const router = useRouter();
   const uploadService = useFileUpload();
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const [imageInfos, setImageInfos] = useState<Record<string, ImageInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,27 @@ export default function EnhancedImageResultPage() {
     currentFile: '',
     progress: 0,
   });
+  useEffect(() => {
+    if (transformData && transformData.length > 0) {
+      // 첫 번째 이미지의 완전한 데이터를 찾아서 설정
+      const firstImage = transformData[0];
+      if (firstImage) {
+        setSelectedImage(firstImage);
+      }
+    }
+  }, [transformData]);
 
+  // transformData의 업데이트를 감지하고 selectedImage를 동기화하는 useEffect
+  useEffect(() => {
+    if (selectedImage && transformData) {
+      const updatedImage = transformData.find(
+        (item) => item.originalFileName === selectedImage.originalFileName
+      );
+      if (updatedImage && updatedImage !== selectedImage) {
+        setSelectedImage(updatedImage);
+      }
+    }
+  }, [transformData, selectedImage]);
   // 처리 프로세스 useEffect
   useEffect(() => {
     if (!transformData) {
@@ -356,9 +378,12 @@ export default function EnhancedImageResultPage() {
             {selectedImage ? (
               <div className="mb-8">
                 {/* Before and After Images with Slider */}
-                <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="flex justify-center mb-8">
                   {/* Original Image */}
-                  <div className="flex flex-col p-4">
+                  <div className="flex flex-col p-4 w-fit">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-200">
+                      Original
+                    </h2>
                     <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
                       <div className="h-64 flex items-center justify-start">
                         <Image
@@ -399,8 +424,12 @@ export default function EnhancedImageResultPage() {
                       )}
                     </div>
                   </div>
+
                   {/* Enhanced Image */}
-                  <div className="flex flex-col p-4">
+                  <div className="flex flex-col p-4 w-fit">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-200">
+                      Result
+                    </h2>
                     <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
                       {selectedImage.processedImageUrl ? (
                         <div className="h-64 flex items-center justify-start rounded-xl">
@@ -416,8 +445,8 @@ export default function EnhancedImageResultPage() {
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-start h-64 text-gray-500 dark:text-gray-400">
-                          처리 결과 없음
+                        <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                          이미지 처리 중...
                         </div>
                       )}
                     </div>
@@ -452,27 +481,55 @@ export default function EnhancedImageResultPage() {
                 {/* Image Compare Slider */}
                 {selectedImage.processedImageUrl && (
                   <div className="mt-4">
-                    <ImageCompareSlider
-                      className="max-w-[700px] m-auto"
-                      beforeImage={selectedImage.previewUrl}
-                      afterImage={selectedImage.processedImageUrl}
-                      beforeLabel={`원본 (${
-                        imageInfos[`original_${selectedImage.originalFileName}`]
-                          ?.dimensions.width
-                      }x${
-                        imageInfos[`original_${selectedImage.originalFileName}`]
-                          ?.dimensions.height
-                      })`}
-                      afterLabel={`${getProcessingText(selectedImage)} (${
-                        imageInfos[
-                          `processed_${selectedImage.originalFileName}`
-                        ]?.dimensions.width
-                      }x${
-                        imageInfos[
-                          `processed_${selectedImage.originalFileName}`
-                        ]?.dimensions.height
-                      })`}
-                    />
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-semibold text-gray-200">
+                        Side-by-side Comparison
+                      </h2>
+                      <button
+                        onClick={() => setIsZoomed(!isZoomed)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                      >
+                        {isZoomed ? (
+                          <>
+                            <Minimize2 className="w-4 h-4" />
+                            <span>Minimize</span>
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 className="w-4 h-4" />
+                            <span>Maximize</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div
+                      className={`transition-all duration-300 ${
+                        isZoomed ? 'max-w-full' : 'max-w-[700px]'
+                      } m-auto`}
+                    >
+                      <ImageCompareSlider
+                        beforeImage={selectedImage.previewUrl}
+                        afterImage={selectedImage.processedImageUrl}
+                        beforeLabel={`Original (${
+                          imageInfos[
+                            `original_${selectedImage.originalFileName}`
+                          ]?.dimensions.width
+                        }x${
+                          imageInfos[
+                            `original_${selectedImage.originalFileName}`
+                          ]?.dimensions.height
+                        })`}
+                        afterLabel={`${getProcessingText(selectedImage)} (${
+                          imageInfos[
+                            `processed_${selectedImage.originalFileName}`
+                          ]?.dimensions.width
+                        }x${
+                          imageInfos[
+                            `processed_${selectedImage.originalFileName}`
+                          ]?.dimensions.height
+                        })`}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -483,12 +540,12 @@ export default function EnhancedImageResultPage() {
             )}
 
             {/* Details Button */}
-            <div className="w-[40%] text-center font-bold bg-[#1E1E1E] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
+            <div className="w-[40%] text-center font-bold bg-[#2e2e2e] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
               Queue
             </div>
 
             {/* Image Grid */}
-            <div className="grid grid-cols-5 gap-2 max-w-4xl mx-5 p-3">
+            <div className="grid grid-cols-3 lg:grid-cols-5 gap-4 max-w-full mx-auto p-4">
               {filteredData.map((item: TransformData, index) => (
                 <div
                   key={index}
@@ -496,7 +553,7 @@ export default function EnhancedImageResultPage() {
                     selectedImage?.originalFileName === item.originalFileName
                       ? 'border-green-500'
                       : 'border-transparent'
-                  } rounded-lg p-1 w-36`}
+                  } rounded-lg p-2`}
                   onClick={() => setSelectedImage(item)}
                 >
                   <div className="relative aspect-[3/4] w-full">
@@ -504,7 +561,7 @@ export default function EnhancedImageResultPage() {
                       <Image
                         src={item.processedImageUrl}
                         alt={`Image ${index + 1}`}
-                        fill
+                        layout="fill"
                         sizes="(max-width: 144px) 100vw, 144px"
                         className="object-cover rounded-lg"
                         priority
@@ -519,7 +576,7 @@ export default function EnhancedImageResultPage() {
                     {item.originalFileName}
                   </div>
                   <button
-                    className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1.5 rounded-lg text-xs transition-colors"
+                    className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1 rounded-lg text-xs transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log(`Next clicked for ${item.originalFileName}`);
