@@ -11,72 +11,245 @@ import {
   type ImageDimensions,
 } from '@/utils/image';
 import ImageCompareSlider from '@/components/ImageCompareSlider';
+import { useFileUpload } from '@/services/uploadService';
+
+type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
+
+interface BaseUploadResult {
+  originalFileName: string;
+  s3Key: string;
+  file: File;
+  width: number;
+  height: number;
+  method: ProcessingMethod;
+}
+
+interface UncropResult extends BaseUploadResult {
+  method: 'uncrop';
+  aspectRatio: '1:1' | '1:2' | '2:1';
+}
+
+interface UpscaleResult extends BaseUploadResult {
+  method: 'upscale';
+  factor: 'x1' | 'x2' | 'x4';
+}
 
 interface ImageInfo {
   dimensions: ImageDimensions;
   size: string;
 }
 
+interface ProcessedResult {
+  success: boolean;
+  uncrop_img?: string;
+  resized_img?: string;
+  message?: string;
+}
+
+interface SpringAPIResponse {
+  success: boolean;
+  results: ProcessedResult[];
+}
+
+interface ProcessingStatus {
+  stage: 'uploading' | 'processing' | 'completed';
+  totalItems: number;
+  currentItemIndex: number;
+  currentFile: string;
+  progress: number;
+}
+
 export default function EnhancedImageResultPage() {
-  const { transformData, showResults } = useTransformStore();
+  const { transformData } = useTransformStore();
   const router = useRouter();
+  const uploadService = useFileUpload();
+
   const [imageInfos, setImageInfos] = useState<Record<string, ImageInfo>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery] = useState('');
   const [selectedImage, setSelectedImage] = useState<TransformData | null>(
-    null
+    // transformData가 있으면 0번째 이미지 선택, 없으면 null
+    transformData && transformData.length > 0 ? transformData[0] : null
   );
+  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
+    stage: 'uploading',
+    totalItems: 0,
+    currentItemIndex: 0,
+    currentFile: '',
+    progress: 0,
+  });
 
+  // 처리 프로세스 useEffect
   useEffect(() => {
-    if (!transformData || !showResults) {
-      router.push('/transform');
+    if (!transformData) {
+      router.push('/');
+      return;
     }
-  }, [transformData, showResults, router]);
 
-  useEffect(() => {
-    // 이미지 정보 수집
-    const loadImageInfos = async () => {
-      if (!transformData) return;
+    const processImages = async () => {
+      try {
+        // 초기화
+        const uploadPromises = transformData.map(async (item, index) => {
+          setProcessingStatus((prev) => ({
+            ...prev,
+            currentItemIndex: index,
+            currentFile: item.originalFileName,
+            progress: (index / transformData.length) * 100,
+          }));
 
-      const infos: Record<string, ImageInfo> = {};
+          if (!item.file) return null;
 
-      for (const item of transformData) {
-        try {
-          const originalDimensions = await getImageDimensions(item.previewUrl);
-          infos[`original_${item.originalFileName}`] = {
-            dimensions: originalDimensions,
-            size: await getFileSize(item.previewUrl),
+          try {
+            const uploadResult = await uploadService.mutateAsync([item.file]);
+            return {
+              originalFileName: item.originalFileName,
+              s3Key: uploadResult[0].s3Key,
+              method: item.processingOptions?.method || '',
+              file: item.file,
+              width: item.width, // width 추가
+              height: item.height, // height 추가
+              ...(item.processingOptions?.method === 'uncrop' && {
+                aspectRatio: item.processingOptions.aspectRatio,
+              }),
+              ...(item.processingOptions?.method === 'upscale' && {
+                factor: item.processingOptions.factor,
+              }),
+            };
+          } catch (error) {
+            console.error(`Failed to upload ${item.originalFileName}:`, error);
+            return null;
+          }
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        const validUploads = uploadResults.filter(
+          (result): result is NonNullable<typeof result> => result !== null
+        );
+
+        // 2. Spring 서버 처리
+        setProcessingStatus((prev) => ({
+          ...prev,
+          stage: 'processing',
+          currentFile: '이미지 처리 중...',
+          progress: 0,
+        }));
+
+        const formData = new FormData();
+
+        // 이후 forEach에서 타입 안전성 보장
+        validUploads.forEach((item, index) => {
+          formData.append(`file_${index}`, item.file);
+          formData.append(`method_${index}`, item.method);
+
+          const metadata = {
+            s3Key: item.s3Key,
+            width: item.width,
+            height: item.height,
+            ...(item.method === 'uncrop' && {
+              aspectRatio: (item as UncropResult).aspectRatio,
+            }),
+            ...(item.method === 'upscale' && {
+              factor: (item as UpscaleResult).factor,
+            }),
           };
 
-          if (item.processedImageUrl) {
-            const processedDimensions = await getImageDimensions(
-              item.processedImageUrl
-            );
-            infos[`processed_${item.originalFileName}`] = {
-              dimensions: processedDimensions,
-              size: await getFileSize(item.processedImageUrl),
-            };
-          }
-        } catch (error) {
-          console.error('이미지 정보 로드 실패:', error);
+          formData.append(`metadata_${index}`, JSON.stringify(metadata));
+        });
+
+        // Spring 서버 요청
+        const response = await fetch('/api/image/transform', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Image processing failed');
         }
+
+        const result = (await response.json()) as SpringAPIResponse;
+
+        // 처리 결과 저장
+        if (result.results) {
+          result.results.forEach(
+            (processedResult: ProcessedResult, index: number) => {
+              if (processedResult.success) {
+                const base64Image =
+                  processedResult.uncrop_img || processedResult.resized_img;
+                if (base64Image) {
+                  useTransformStore
+                    .getState()
+                    .updateProcessedImage(
+                      transformData[index].originalFileName,
+                      `data:image/jpeg;base64,${base64Image}`
+                    );
+                }
+              }
+            }
+          );
+        }
+
+        // 완료 처리
+        setProcessingStatus((prev) => ({
+          ...prev,
+          stage: 'completed',
+          progress: 100,
+        }));
+        setLoading(false);
+      } catch (error) {
+        console.error('Image processing failed:', error);
+        setLoading(false);
       }
+    };
 
-      setImageInfos(infos);
-      setLoading(false);
+    processImages();
+  }, []); // 초기 1회만 실행
 
-      // Initialize the selected image with the first available processed image
-      const firstProcessed = transformData.find(
-        (item) => item.processedImageUrl
-      );
-      if (firstProcessed) {
-        setSelectedImage(firstProcessed);
+  // 이미지 정보 수집 useEffect
+  useEffect(() => {
+    const loadImageInfos = async () => {
+      if (!transformData || processingStatus.stage !== 'completed') return;
+
+      try {
+        const infos: Record<string, ImageInfo> = {};
+
+        await Promise.all(
+          transformData.map(async (item) => {
+            try {
+              const [originalDimensions, originalSize] = await Promise.all([
+                getImageDimensions(item.previewUrl),
+                getFileSize(item.previewUrl),
+              ]);
+
+              infos[`original_${item.originalFileName}`] = {
+                dimensions: originalDimensions,
+                size: originalSize,
+              };
+
+              if (item.processedImageUrl) {
+                const [processedDimensions, processedSize] = await Promise.all([
+                  getImageDimensions(item.processedImageUrl),
+                  getFileSize(item.processedImageUrl),
+                ]);
+
+                infos[`processed_${item.originalFileName}`] = {
+                  dimensions: processedDimensions,
+                  size: processedSize,
+                };
+              }
+            } catch (error) {
+              console.error(`${item.originalFileName} 정보 로드 실패:`, error);
+            }
+          })
+        );
+
+        setImageInfos(infos);
+      } catch (error) {
+        console.error('이미지 정보 수집 실패:', error);
       }
     };
 
     loadImageInfos();
-  }, [transformData]);
-
+  }, [transformData, processingStatus.stage]); // 유틸리티 함수들
   const getFileSize = async (url: string): Promise<string> => {
     try {
       const response = await fetch(url);
@@ -114,14 +287,41 @@ export default function EnhancedImageResultPage() {
 
   if (!transformData) return null;
 
-  // Filter transformData based on search query
+  // 진행 상태 UI
+  if (processingStatus.stage !== 'completed') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e] text-white">
+        <div className="w-96 space-y-4">
+          <h2 className="text-xl font-semibold text-center">
+            {processingStatus.stage === 'uploading'
+              ? '파일 업로드 중...'
+              : '이미지 처리 중...'}
+          </h2>
+          <div className="text-sm text-center text-gray-400">
+            {processingStatus.stage === 'uploading' &&
+              `${processingStatus.currentItemIndex + 1} / ${
+                processingStatus.totalItems
+              }`}
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all"
+              style={{ width: `${processingStatus.progress}%` }}
+            />
+          </div>
+          <p className="text-sm text-center text-gray-400">
+            {processingStatus.currentFile}
+          </p>
+        </div>
+      </div>
+    );
+  } // Filter transformData based on search query
   const filteredData = transformData.filter((item) =>
     item.originalFileName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className=" bg-[#1e1e1e] text-white">
-      {/* Main Content */}
+    <div className="bg-[#1e1e1e] text-white">
       <main>
         <div className="flex items-center mb-4">
           <h1 className="text-3xl font-semibold">Image Enhancements</h1>
@@ -157,7 +357,6 @@ export default function EnhancedImageResultPage() {
               <div className="mb-8">
                 {/* Before and After Images with Slider */}
                 <div className="grid grid-cols-2 gap-6 mb-8">
-                  {' '}
                   {/* Original Image */}
                   <div className="flex flex-col p-4">
                     <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
@@ -170,6 +369,7 @@ export default function EnhancedImageResultPage() {
                           className="h-64 w-auto rounded-xl"
                           sizes="(max-width: 768px) 100vw, 50vw"
                           style={{ height: '256px', width: 'auto' }}
+                          priority
                         />
                       </div>
                     </div>
@@ -212,6 +412,7 @@ export default function EnhancedImageResultPage() {
                             className="h-64 w-auto rounded-xl"
                             sizes="(max-width: 768px) 100vw, 50vw"
                             style={{ height: '256px', width: 'auto' }}
+                            priority
                           />
                         </div>
                       ) : (
@@ -306,6 +507,7 @@ export default function EnhancedImageResultPage() {
                         fill
                         sizes="(max-width: 144px) 100vw, 144px"
                         className="object-cover rounded-lg"
+                        priority
                       />
                     ) : (
                       <div className="w-full h-full bg-[#2E2E2E] rounded-lg flex items-center justify-center">

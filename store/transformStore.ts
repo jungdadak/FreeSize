@@ -3,6 +3,7 @@ import { ProcessingOption } from './fileStore';
 
 export interface TransformData {
   s3Key: string;
+  file: File; // file 추가
   processingOptions: ProcessingOption | null;
   originalFileName: string;
   previewUrl: string;
@@ -21,6 +22,8 @@ export interface TransformState {
   showResults: boolean; // 결과 화면 표시 여부
 
   // 액션
+  updateS3Key: (fileName: string, s3Key: string) => void;
+  updateProcessedImage: (fileName: string, imageUrl: string) => void;
   setTransformData: (data: TransformData[]) => void;
   resetTransformData: () => void;
   updateProcessingStatus: (
@@ -73,4 +76,21 @@ export const useTransformStore = create<TransformState>((set) => ({
     }),
 
   setShowResults: (show) => set({ showResults: show }),
+  updateS3Key: (fileName, s3Key) =>
+    set((state) => ({
+      transformData:
+        state.transformData?.map((item) =>
+          item.originalFileName === fileName ? { ...item, s3Key } : item
+        ) || null,
+    })),
+
+  updateProcessedImage: (fileName, imageUrl) =>
+    set((state) => ({
+      transformData:
+        state.transformData?.map((item) =>
+          item.originalFileName === fileName
+            ? { ...item, processedImageUrl: imageUrl }
+            : item
+        ) || null,
+    })),
 }));

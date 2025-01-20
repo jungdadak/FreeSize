@@ -2,13 +2,11 @@ import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFileStore } from '@/store/fileStore';
 import { useTransformStore } from '@/store/transformStore';
-import { useFileUpload } from '@/services/uploadService';
 import { useUploadStore } from '@/store/uploadStore';
 import { getImageDimensions } from '@/utils/image';
 
 export function useFileProcessing() {
   const router = useRouter();
-  const uploadMutation = useFileUpload();
   const { isUploading, stage } = useUploadStore();
   const {
     files,
@@ -119,26 +117,25 @@ export function useFileProcessing() {
     }
 
     try {
-      const results = await uploadMutation.mutateAsync(
-        files.map((f) => f.file)
-      );
-
-      const transformDataArray = results.map((result, index) => ({
-        s3Key: result.s3Key,
-        processingOptions: files[index].processingOption,
-        originalFileName: files[index].file.name,
-        previewUrl: files[index].previewUrl,
-        width: files[index].dimensions?.width || 800,
-        height: files[index].dimensions?.height || 600,
+      // s3Key는 result 페이지에서 생성될 예정이므로 임시값 설정
+      const transformDataArray = files.map((file) => ({
+        s3Key: '', // 빈 문자열로 초기화, result 페이지에서 업데이트 예정
+        processingOptions: file.processingOption,
+        originalFileName: file.file.name,
+        previewUrl: file.previewUrl,
+        width: file.dimensions?.width || 800,
+        height: file.dimensions?.height || 600,
+        file: file.file, // 실제 파일도 전달
       }));
 
       useTransformStore.getState().setTransformData(transformDataArray);
-
-      setTimeout(() => {
-        router.push('/transform');
-      }, 100);
+      router.push('/transform/result');
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Processing preparation failed:', error);
+      setUploadStatus({
+        stage: 'idle',
+        error: '처리 준비 중 오류가 발생했습니다.',
+      });
     }
   };
 
