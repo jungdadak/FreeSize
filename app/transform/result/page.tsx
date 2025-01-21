@@ -224,6 +224,7 @@ export default function EnhancedImageResultPage() {
     };
 
     processImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 초기 1회만 실행
 
   // 이미지 정보 수집 useEffect

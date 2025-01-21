@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { userSelect } from '@/types/user';
 
 export async function POST(request: Request) {
   const { email, password, name } = await request.json();
@@ -15,7 +16,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
     if (existingUser) {
       return NextResponse.json(
         { message: 'User already exists' },
@@ -31,6 +36,7 @@ export async function POST(request: Request) {
         name,
         role: 'USER',
       },
+      select: userSelect,
     });
 
     const token = jwt.sign(
@@ -39,7 +45,19 @@ export async function POST(request: Request) {
       { expiresIn: '1h' }
     );
 
-    return NextResponse.json({ token }, { status: 201 });
+    const response = NextResponse.json(
+      { message: 'User created successfully' },
+      { status: 201 }
+    );
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60,
+    });
+
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(

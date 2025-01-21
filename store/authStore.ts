@@ -1,27 +1,29 @@
 // store/authStore.ts
 
-import { create } from 'zustand'; // Named import
-import { persist, createJSONStorage } from 'zustand/middleware'; // Named imports
-import axios from '@/lib/axios'; // Custom Axios instance
-import { isAxiosError } from 'axios'; // Import isAxiosError directly
-import { jwtDecode } from 'jwt-decode'; // Named import
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import axios from '@/lib/axios';
+import { isAxiosError } from 'axios';
 
 // 사용자 정보 인터페이스
-interface User {
-  userId: number;
-  email: string;
-  role: 'USER' | 'ADMIN';
-}
+import { Prisma } from '@prisma/client';
 
-// 인증 상태 인터페이스
+type UserProfile = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    email: true;
+    role: true;
+  };
+}>;
+
 interface AuthState {
-  user: User | null;
-  token: string | null;
+  user: UserProfile | null;
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 // Zustand 스토어 생성
@@ -29,7 +31,6 @@ const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
       loading: false,
       error: null,
 
@@ -37,25 +38,17 @@ const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ loading: true, error: null });
         try {
-          const res = await axios.post('/api/auth/login', { email, password });
-          const { token } = res.data;
-          const decoded = jwtDecode<{
-            userId: number;
-            email: string;
-            role: 'USER' | 'ADMIN';
-          }>(token);
+          // 서버에 로그인 요청 (JWT는 HTTP-Only 쿠키에 설정됨)
+          await axios.post('/api/auth/login', { email, password });
+
+          // 로그인 성공 후 사용자 정보 가져오기
+          const profileRes = await axios.get('/api/profile');
           set({
-            token,
-            user: {
-              userId: decoded.userId,
-              email: decoded.email,
-              role: decoded.role,
-            },
+            user: profileRes.data.user,
             loading: false,
           });
         } catch (error: unknown) {
           if (isAxiosError(error) && error.response) {
-            // Use isAxiosError directly
             set({
               error: error.response.data.message || 'Login failed',
               loading: false,
@@ -71,29 +64,17 @@ const useAuthStore = create<AuthState>()(
       signup: async (email: string, password: string, name?: string) => {
         set({ loading: true, error: null });
         try {
-          const res = await axios.post('/api/auth/signup', {
-            email,
-            password,
-            name,
-          });
-          const { token } = res.data;
-          const decoded = jwtDecode<{
-            userId: number;
-            email: string;
-            role: 'USER' | 'ADMIN';
-          }>(token);
+          // 서버에 회원가입 요청 (JWT는 HTTP-Only 쿠키에 설정됨)
+          await axios.post('/api/auth/signup', { email, password, name });
+
+          // 회원가입 성공 후 사용자 정보 가져오기
+          const profileRes = await axios.get('/api/profile');
           set({
-            token,
-            user: {
-              userId: decoded.userId,
-              email: decoded.email,
-              role: decoded.role,
-            },
+            user: profileRes.data.user,
             loading: false,
           });
         } catch (error: unknown) {
           if (isAxiosError(error) && error.response) {
-            // Use isAxiosError directly
             set({
               error: error.response.data.message || 'Signup failed',
               loading: false,
@@ -105,18 +86,23 @@ const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 로그아웃 함수
-      logout: () => {
-        set({ token: null, user: null });
+      logout: async () => {
+        try {
+          await axios.post('/api/auth/logout');
+          set({ user: null }); // API 성공 후에 상태 초기화
+        } catch (error) {
+          console.error('Logout error:', error);
+          // 에러가 나더라도 로컬 상태는 초기화
+          set({ user: null });
+        }
       },
     }),
     {
       name: 'auth-storage', // unique name for localStorage
       storage: createJSONStorage(() => localStorage), // using createJSONStorage for correct typing
       partialize: (state: AuthState) => ({
-        token: state.token,
         user: state.user,
-      }), // only persist token and user
+      }), // only persist user
     }
   )
 );

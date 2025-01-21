@@ -7,7 +7,7 @@ import Link from 'next/link';
 import DarkModeToggler from '../DarkModeToggler';
 import MobileNav from './MobileNav';
 import SignInButton from '../Btn/SignInButton';
-import LogoutButton from '../Btn/LogoutButton'; // LogoutButton 추가
+import LogoutButton from '../Btn/LogoutButton'; // LogoutButton 임포트
 import Logo from '../Logo';
 import useAuthStore from '@/store/authStore'; // Zustand 스토어 임포트
 
@@ -60,7 +60,16 @@ export default function Navbar() {
               ))}
             </ul>
             {/* 조건부 렌더링: 로그인 상태에 따라 버튼 표시 */}
-            {user ? <LogoutButton /> : <SignInButton />}
+            {user ? (
+              <>
+                <span className="text-gray-700 dark:text-gray-300 mr-4">
+                  Hello, {user.name || user.email.split('@')[0]}
+                </span>
+                <LogoutButton />
+              </>
+            ) : (
+              <SignInButton />
+            )}
             <DarkModeToggler />
           </nav>
 

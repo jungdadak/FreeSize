@@ -1,27 +1,32 @@
+// components/UsersPage.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import axios from '@/lib/axios'; // Your custom Axios instance
-import { AxiosError, isAxiosError } from 'axios'; // Import directly from 'axios'
+import { AxiosError, isAxiosError } from 'axios';
 import useAuthStore from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import useProtected from '@/hooks/useProtected';
+import { Prisma } from '@prisma/client';
 
-interface User {
-  id: number;
-  email: string;
-  name?: string;
-  role: 'USER' | 'ADMIN';
-  createdAt: string;
-  updatedAt: string;
-}
+type UserList = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    email: true;
+    name: true;
+    role: true;
+    createdAt: true;
+    updatedAt: true;
+  };
+}>;
 
 const UsersPage = () => {
   useProtected('ADMIN');
 
-  const { user, token, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,18 +35,12 @@ const UsersPage = () => {
 
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('/api/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get('/api/users');
         setUsers(res.data);
         setLoading(false);
       } catch (error: unknown) {
-        // Changed from 'AxiosError' to 'unknown'
         console.error('Error fetching users:', error);
         if (isAxiosError(error)) {
-          // Use the imported 'isAxiosError'
           const axiosError = error as AxiosError<{ message: string }>;
           setError(
             axiosError.response?.data?.message || 'Failed to load users'
@@ -54,22 +53,16 @@ const UsersPage = () => {
     };
 
     fetchUsers();
-  }, [user, token]);
+  }, [user]);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`/api/users/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(`/api/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
     } catch (error: unknown) {
-      // Changed from 'AxiosError' to 'unknown'
       console.error('Error deleting user:', error);
       if (isAxiosError(error)) {
-        // Use the imported 'isAxiosError'
         const axiosError = error as AxiosError<{ message: string }>;
         alert(axiosError.response?.data?.message || 'Failed to delete user');
       } else {

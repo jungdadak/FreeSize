@@ -1,29 +1,34 @@
+// components/EditUserPage.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from '@/lib/axios'; // Your custom Axios instance
+import axios from '@/lib/axios'; // Custom Axios instance
 import { AxiosError, isAxiosError } from 'axios'; // Import directly from 'axios'
-import useAuthStore from '@/store/authStore';
 import { useRouter, useParams } from 'next/navigation';
 import useProtected from '@/hooks/useProtected';
+import { Prisma } from '@prisma/client';
 
-interface User {
-  id: number;
-  email: string;
-  name?: string;
-  role: 'USER' | 'ADMIN';
-  createdAt: string;
-  updatedAt: string;
-}
+type UserWithoutPassword = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    email: true;
+    name: true;
+    role: true;
+    createdAt: true;
+    updatedAt: true;
+  };
+}>;
 
 const EditUserPage = () => {
   useProtected('ADMIN');
 
-  const { token } = useAuthStore();
   const router = useRouter();
   const params = useParams();
   const { id } = params;
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserWithoutPassword | null>(
+    null
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -35,20 +40,14 @@ const EditUserPage = () => {
     if (id) {
       const fetchUser = async () => {
         try {
-          const res = await axios.get(`/api/users/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const res = await axios.get(`/api/users/${id}`);
           setCurrentUser(res.data);
           setEmail(res.data.email);
           setName(res.data.name || '');
           setRole(res.data.role);
         } catch (error: unknown) {
-          // Use 'unknown' for better type safety
           console.error('Error fetching user:', error);
           if (isAxiosError(error)) {
-            // Use the imported 'isAxiosError'
             const axiosError = error as AxiosError<{ message: string }>;
             setMessage(
               axiosError.response?.data?.message || 'Failed to fetch user'
@@ -60,29 +59,19 @@ const EditUserPage = () => {
       };
       fetchUser();
     }
-  }, [id, token]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
     try {
-      await axios.put(
-        `/api/users/${id}`,
-        { email, password, name, role },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.put(`/api/users/${id}`, { email, password, name, role });
       setMessage('User updated successfully');
       router.push('/auth/users');
     } catch (error: unknown) {
-      // Use 'unknown' for better type safety
       console.error('Error updating user:', error);
       if (isAxiosError(error)) {
-        // Use the imported 'isAxiosError'
         const axiosError = error as AxiosError<{ message: string }>;
         setMessage(
           axiosError.response?.data?.message || 'Failed to update user'

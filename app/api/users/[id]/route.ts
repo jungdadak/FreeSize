@@ -1,15 +1,16 @@
 // app/api/users/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { authenticate } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
-import { Prisma } from '@prisma/client'; // Prisma 타입 임포트
+import { Prisma } from '@prisma/client';
+import { userSelect } from '@/types/user';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const user = await authenticate(request);
+  const user = authenticate(request);
   if (!user || user.role !== 'ADMIN') {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
@@ -22,7 +23,11 @@ export async function GET(
   }
 
   try {
-    const userData = await prisma.user.findUnique({ where: { id: userId } });
+    const userData = await prisma.user.findUnique({
+      where: { id: userId },
+      select: userSelect,
+    });
+
     if (!userData) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -37,10 +42,10 @@ export async function GET(
 }
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const user = await authenticate(request);
+  const user = authenticate(request);
   if (!user || user.role !== 'ADMIN') {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
@@ -55,7 +60,6 @@ export async function PUT(
   const { email, password, name, role } = await request.json();
 
   try {
-    // Prisma의 UserUpdateInput 타입 사용
     const updateData: Prisma.UserUpdateInput = { email, name, role };
 
     if (password) {
@@ -65,6 +69,7 @@ export async function PUT(
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
+      select: userSelect,
     });
 
     return NextResponse.json(updatedUser);
@@ -78,10 +83,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const user = await authenticate(request);
+  const user = authenticate(request);
   if (!user || user.role !== 'ADMIN') {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
@@ -94,7 +99,9 @@ export async function DELETE(
   }
 
   try {
-    await prisma.user.delete({ where: { id: userId } });
+    await prisma.user.delete({
+      where: { id: userId },
+    });
     return NextResponse.json(
       { message: 'User deleted successfully' },
       { status: 204 }

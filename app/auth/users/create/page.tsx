@@ -1,16 +1,16 @@
+// components/CreateUserPage.tsx
+
 'use client';
 
 import { useState } from 'react';
 import axios from '@/lib/axios'; // Your custom Axios instance
 import { AxiosError, isAxiosError } from 'axios'; // Import directly from 'axios'
-import useAuthStore from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import useProtected from '@/hooks/useProtected';
 
 const CreateUserPage = () => {
   useProtected('ADMIN');
 
-  const { token } = useAuthStore();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,22 +24,12 @@ const CreateUserPage = () => {
     setLoading(true);
     setMessage(null);
     try {
-      await axios.post(
-        '/api/users',
-        { email, password, name, role },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post('/api/users', { email, password, name, role });
       setMessage('User created successfully');
       router.push('/users');
     } catch (error: unknown) {
-      // Changed from 'any' to 'unknown'
       console.error('Error creating user:', error);
       if (isAxiosError(error)) {
-        // Use the imported 'isAxiosError'
         const axiosError = error as AxiosError<{ message: string }>;
         setMessage(
           axiosError.response?.data?.message || 'Failed to create user'

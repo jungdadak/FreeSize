@@ -4,6 +4,13 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const loginSelect = {
+  id: true,
+  email: true,
+  password: true,
+  role: true,
+} as const;
+
 export async function POST(request: Request) {
   const { email, password } = await request.json();
 
@@ -15,7 +22,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: loginSelect,
+    });
+
     if (!user) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -37,7 +48,19 @@ export async function POST(request: Request) {
       { expiresIn: '1h' }
     );
 
-    return NextResponse.json({ token }, { status: 200 });
+    const response = NextResponse.json(
+      { message: 'Logged in successfully' },
+      { status: 200 }
+    );
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60,
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
