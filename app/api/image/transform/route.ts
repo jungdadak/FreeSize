@@ -4,17 +4,31 @@ const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
 
 async function sendToSpringApi(formData: FormData, url: string) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+
     const response = await fetch(url, {
       method: 'POST',
+      credentials: 'include', // 필요한 경우 쿠키 포함
+      mode: 'cors', // CORS 설정
+      signal: controller.signal,
       body: formData,
     });
 
+    clearTimeout(timeoutId); // 성공적인 응답을 받았으면 타이머 해제
+
     if (!response.ok) {
-      throw new Error(`Failed to send data to ${url}`);
+      const errorData = await response.text();
+      throw new Error(`Failed to send data to ${url}: ${errorData}`);
     }
 
     return response.json();
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error(`Request timeout for ${url}`);
+      }
+    }
     console.error(`Error sending to ${url}:`, error);
     throw error;
   }
@@ -42,10 +56,10 @@ export async function POST(request: Request) {
       const newFormData = new FormData();
       newFormData.append('file', file);
 
-      // 공통 메타데이터 추가 todo
-      // newFormData.append('s3Key', metadata.s3Key);
-      // newFormData.append('width', metadata.width.toString());
-      // newFormData.append('height', metadata.height.toString());
+      // 공통 메타데이터 추가
+      newFormData.append('s3Key', metadata.s3Key);
+      newFormData.append('width', metadata.width.toString());
+      newFormData.append('height', metadata.height.toString());
 
       switch (method) {
         case 'uncrop':
@@ -69,15 +83,8 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log('4️⃣ 필터링 결과:', {
-      uncrop: uncropData.length,
-      square: squareData.length,
-      upscale: upscaleData.length,
-    });
-
     try {
       console.log('5️⃣ Spring API 요청 시작');
-      console.log('SPRING_API_BASE:', SPRING_API_BASE);
 
       const results = await Promise.all([
         ...uncropData.map((data) =>
