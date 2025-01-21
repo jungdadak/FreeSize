@@ -1,38 +1,30 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { authenticate } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
-  // CORS 헤더 설정
-  const response = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  // Admin 페이지 접근 제어
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const user = authenticate(request);
 
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set(
-    'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains'
-  );
-
-  // API 라우트에 대한 추가 보안
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    response.headers.set('X-DNS-Prefetch-Control', 'off');
-    response.headers.set('X-Download-Options', 'noopen');
-    response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
   }
 
-  return response;
+  // Protected 페이지 접근 제어
+  if (request.nextUrl.pathname.startsWith('/profile')) {
+    const user = authenticate(request);
+
+    if (!user) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/admin/:path*', '/profile/:path*'],
 };

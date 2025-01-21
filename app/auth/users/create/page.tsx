@@ -1,4 +1,4 @@
-// components/CreateUserPage.tsx
+// app/auth/create/page.tsx
 
 'use client';
 

@@ -1,5 +1,4 @@
-// components/UsersPage.tsx
-
+//app/auth/users/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';

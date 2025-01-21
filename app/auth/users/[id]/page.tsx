@@ -1,4 +1,4 @@
-// components/EditUserPage.tsx
+// app/auth/users/[id]/page.tsx
 
 'use client';
 

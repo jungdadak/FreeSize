@@ -1,23 +1,32 @@
-// hooks/useProtected.ts
-import { useEffect } from 'react';
-import useAuthStore from '@/store/authStore';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from '@/lib/axios';
 
 const useProtected = (requiredRole: 'USER' | 'ADMIN' | null = null) => {
-  const { user } = useAuthStore();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+    const verifyAccess = async () => {
+      try {
+        const response = await axios.get('/api/auth/profile');
+        const user = response.data.user;
 
-    if (requiredRole && user.role !== requiredRole) {
-      router.push('/');
-      return;
-    }
-  }, [user, requiredRole, router]);
+        if (!user || (requiredRole && user.role !== requiredRole)) {
+          router.push('/auth/login');
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Access verification failed:', error);
+        router.push('/auth/login');
+      }
+    };
+
+    verifyAccess();
+  }, [requiredRole, router]);
+
+  return loading;
 };
 
 export default useProtected;

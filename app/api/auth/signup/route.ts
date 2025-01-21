@@ -6,28 +6,11 @@ import jwt from 'jsonwebtoken';
 import { userSelect } from '@/types/user';
 
 export async function POST(request: Request) {
-  const { email, password, name } = await request.json();
-
-  if (!email || !password) {
-    return NextResponse.json(
-      { message: 'Email and password are required' },
-      { status: 400 }
-    );
-  }
-
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
+    const { email, password, name } = await request.json();
+    console.log('Signup request received:', { email, name }); // 비밀번호는 로그에 남기지 않음
 
-    if (existingUser) {
-      return NextResponse.json(
-        { message: 'User already exists' },
-        { status: 409 }
-      );
-    }
-
+    // 1. 사용자 생성 단계
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
@@ -38,17 +21,31 @@ export async function POST(request: Request) {
       },
       select: userSelect,
     });
+    console.log('User created successfully:', user.id);
 
+    // 2. JWT 토큰 생성 단계
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
       { expiresIn: '1h' }
     );
+    console.log('JWT token generated');
 
+    // 3. 응답 생성 및 쿠키 설정
     const response = NextResponse.json(
-      { message: 'User created successfully' },
+      {
+        message: 'User created successfully',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+      },
       { status: 201 }
     );
+
+    // 4. 쿠키 설정
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -56,12 +53,16 @@ export async function POST(request: Request) {
       path: '/',
       maxAge: 60 * 60,
     });
+    console.log('Cookie set successfully');
 
     return response;
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('Detailed signup error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      {
+        message: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

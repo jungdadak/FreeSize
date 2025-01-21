@@ -1,20 +1,15 @@
 'use client';
+
 import SignInButton from '../Btn/SignInButton';
 import { useRef } from 'react';
-import {
-  Menu,
-  X,
-  ArrowUpLeft,
-  Home,
-  User,
-  Plus,
-  RocketIcon,
-} from 'lucide-react';
+import { Menu, X, ArrowUpLeft, Home, User, Plus } from 'lucide-react';
 import { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFileStore, FileItem } from '@/store/fileStore';
 import { FILE_CONFIG } from '@/configs/file.config';
+import useAuthStore from '@/store/authStore';
+import LogoutButton from '../Btn/LogoutButton';
 
 interface NavItem {
   href: string;
@@ -22,17 +17,11 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const navItems: NavItem[] = [
-  {
-    href: '/quickstart',
-    label: 'Quick Start',
-    icon: <RocketIcon className="w-8 h-8 bg-red-600 p-1 rounded-md" />,
-  },
-  { href: '/', label: 'Home', icon: <Home className="w-6 h-6" /> },
-  { href: '/profile', label: 'Profile', icon: <User className="w-6 h-6" /> },
-];
+interface MobileNavProps {
+  navItems: NavItem[];
+}
 
-export default function MobileNav() {
+const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string>('');
@@ -40,6 +29,7 @@ export default function MobileNav() {
   const router = useRouter();
   const files = useFileStore((state) => state.files);
   const addFile = useFileStore((state) => state.addFile);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     setMounted(true);
@@ -132,7 +122,6 @@ export default function MobileNav() {
         )}
       </button>
 
-      {/* Hidden file input */}
       <input
         type="file"
         ref={inputRef}
@@ -155,7 +144,7 @@ export default function MobileNav() {
           }
         `}
       >
-        <nav className="h-full flex flex-col items-center px-6 ">
+        <nav className="h-full flex flex-col items-center px-6">
           <ul className="flex flex-col items-center gap-8 mb-12">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -171,7 +160,7 @@ export default function MobileNav() {
             ))}
           </ul>
           <div className="flex justify-center items-center">
-            <SignInButton />
+            {user ? <LogoutButton /> : <SignInButton />}
           </div>
 
           <button
@@ -199,12 +188,11 @@ export default function MobileNav() {
       >
         <div className="flex-1 flex justify-center">
           <Link href="/" className="flex flex-col items-center gap-1">
-            {navItems[1].icon}
-            <span className="text-xs">{navItems[1].label}</span>
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
           </Link>
         </div>
 
-        {/* Center Upload Button */}
         <div className="flex-1 flex justify-center -mt-8">
           <button
             onClick={onUploadClick}
@@ -228,11 +216,13 @@ export default function MobileNav() {
 
         <div className="flex-1 flex justify-center">
           <Link href="/profile" className="flex flex-col items-center gap-1">
-            {navItems[2].icon}
-            <span className="text-xs">{navItems[2].label}</span>
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
           </Link>
         </div>
       </div>
     </>
   );
-}
+};
+
+export default MobileNav;
