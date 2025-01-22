@@ -9,7 +9,7 @@ import { useFileStore, FileItem } from '@/store/fileStore';
 import { FILE_CONFIG } from '@/configs/file.config';
 import { useSession } from 'next-auth/react';
 import LogoutButton from '../Btn/LogoutButton';
-import { Button } from '@/components/ui/button';
+import SignInButton from '../Btn/SignInButton';
 
 interface NavItem {
   href: string;
@@ -165,13 +165,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
             ))}
           </ul>
           <div className="flex justify-center items-center">
-            {session ? (
-              <LogoutButton />
-            ) : (
-              <Button asChild>
-                <Link href="/login">로그인</Link>
-              </Button>
-            )}
+            {session ? <LogoutButton /> : <SignInButton />}
           </div>
 
           <button
