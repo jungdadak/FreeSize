@@ -1,6 +1,5 @@
 'use client';
 
-import SignInButton from '../Btn/SignInButton';
 import { useRef } from 'react';
 import { Menu, X, ArrowUpLeft, Home, User, Plus } from 'lucide-react';
 import { useState, useEffect, ChangeEvent } from 'react';
@@ -8,8 +7,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFileStore, FileItem } from '@/store/fileStore';
 import { FILE_CONFIG } from '@/configs/file.config';
-import useAuthStore from '@/store/authStore';
+import { useSession } from 'next-auth/react';
 import LogoutButton from '../Btn/LogoutButton';
+import { Button } from '@/components/ui/button';
 
 interface NavItem {
   href: string;
@@ -29,7 +29,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
   const router = useRouter();
   const files = useFileStore((state) => state.files);
   const addFile = useFileStore((state) => state.addFile);
-  const user = useAuthStore((state) => state.user);
+  const { data: session } = useSession();
 
   useEffect(() => {
     setMounted(true);
@@ -151,7 +151,12 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex flex-col items-center gap-2 hover:text-blue-500 transition-colors duration-200"
+                  className={`flex flex-col items-center gap-2 transition-colors duration-200
+                    ${
+                      item.href === '/admin'
+                        ? 'text-yellow-400 hover:text-yellow-300'
+                        : 'hover:text-blue-500'
+                    }`}
                 >
                   {item.icon}
                   <span className="text-lg">{item.label}</span>
@@ -160,7 +165,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
             ))}
           </ul>
           <div className="flex justify-center items-center">
-            {user ? <LogoutButton /> : <SignInButton />}
+            {session ? (
+              <LogoutButton />
+            ) : (
+              <Button asChild>
+                <Link href="/login">로그인</Link>
+              </Button>
+            )}
           </div>
 
           <button

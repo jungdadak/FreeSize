@@ -2,7 +2,7 @@
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/card';
 import { FileItem } from '@/store/fileStore';
 import { useFileProcessing } from '@/hooks/useFileProcessing';
 

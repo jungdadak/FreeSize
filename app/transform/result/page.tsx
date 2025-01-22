@@ -197,6 +197,7 @@ export default function EnhancedImageResultPage() {
                 const base64Image = processedResult.resized_img;
                 if (base64Image) {
                   useTransformStore
+
                     .getState()
                     .updateProcessedImage(
                       transformData[index].originalFileName,

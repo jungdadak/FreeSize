@@ -1,13 +1,13 @@
-// components/ToastContainer.tsx
+// components/Toast/ToastContainer.tsx
 'use client';
 import useToastStore from '@/store/toastStore';
-import SuccessToast from '@/components/Toast/success';
+import Toast from './Toast';
 
 const ToastContainer = () => {
-  const { message, hideToast } = useToastStore();
+  const { message, variant, hideToast } = useToastStore();
 
   return message ? (
-    <SuccessToast message={message} onClose={hideToast} />
+    <Toast message={message} onClose={hideToast} variant={variant} />
   ) : null;
 };
 
