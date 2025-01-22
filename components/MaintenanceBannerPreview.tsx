@@ -24,7 +24,7 @@ export default function MaintenanceBannerPreview({
     <Alert
       variant="destructive"
       className={cn(
-        'rounded-none border-none text-white animate-pulse',
+        'rounded-none border-none text-white ',
         variantStyles[type]
       )}
     >

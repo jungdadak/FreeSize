@@ -17,7 +17,7 @@ export default function MaintenanceBanner() {
       // variant 속성을 제거하거나 기본값으로 설정
       // variant={banner.type}
       className={cn(
-        'rounded-none border-none mt-16 text-white animate-pulse',
+        'rounded-none border-none mt-16 text-white',
         variantStyles[banner.type] // type에 따른 배경색 적용
       )}
     >
