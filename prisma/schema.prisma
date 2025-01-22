@@ -27,3 +27,17 @@ enum Role {
   USER
   ADMIN
 }
+model MaintenanceBanner {
+  id        Int             @id @default(1)
+  isActive  Boolean
+  message   String
+  type      MaintenanceType
+  updatedAt DateTime        @updatedAt
+}
+
+enum MaintenanceType {
+  destructive
+  warning
+  info
+  maintenance
+}

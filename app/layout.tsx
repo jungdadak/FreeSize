@@ -6,6 +6,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import { Providers } from './providers';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import MaintenanceBanner from '@/components/MaintenanceBanner';
 
 // Import Swiper's CSS
 import 'swiper/css';
@@ -78,6 +79,8 @@ export default async function RootLayout({
       >
         <Providers>
           <div className="flex flex-col min-h-screen">
+            {' '}
+            <MaintenanceBanner />
             <Navbar />
             <main className="flex-grow lg:pt-16 pb-16">
               {' '}
