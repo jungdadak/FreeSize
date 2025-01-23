@@ -26,6 +26,7 @@ export default function PreviewPage() {
     handleMethodToggle,
     handleAspectRatioChange,
     handleUpscaleFactorChange,
+    handleSquareTargetResChange,
     handleRemoveFile,
     handleCancel,
     handleProcess,
@@ -52,17 +53,22 @@ export default function PreviewPage() {
                       index={index}
                       onRemove={handleRemoveFile}
                     />
-                    <ProcessingOptions
-                      fileItem={fileItem}
-                      index={index}
-                      onMethodToggle={handleMethodToggle}
-                      onAspectRatioChange={handleAspectRatioChange}
-                      onUpscaleFactorChange={handleUpscaleFactorChange}
-                    />
+                    <div className="lg:w-1/2">
+                      <div className="flex flex-col w-full">
+                        <ProcessingOptions
+                          fileItem={fileItem}
+                          index={index}
+                          onMethodToggle={handleMethodToggle}
+                          onAspectRatioChange={handleAspectRatioChange}
+                          onUpscaleFactorChange={handleUpscaleFactorChange}
+                          onSquareTargetResChange={handleSquareTargetResChange}
+                        />
+                      </div>{' '}
+                      <SwiperNavigation totalFiles={totalFiles} />
+                    </div>
                   </div>
                 </SwiperSlide>
               ))}
-              <SwiperNavigation totalFiles={totalFiles} />
             </Swiper>
 
             <ActionButtons

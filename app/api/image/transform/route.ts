@@ -47,11 +47,10 @@ export async function POST(request: Request) {
 
     // entries를 3개씩 그룹화 (file, metadata, method)
     for (let i = 0; i < entries.length; i += 3) {
-      const method = formData.get(`method_${Math.floor(i / 3)}`) as string;
-      const file = formData.get(`file_${Math.floor(i / 3)}`) as File;
-      const metadata = JSON.parse(
-        formData.get(`metadata_${Math.floor(i / 3)}`) as string
-      );
+      const index = Math.floor(i / 3);
+      const method = formData.get(`method_${index}`) as string;
+      const file = formData.get(`file_${index}`) as File;
+      const metadata = JSON.parse(formData.get(`metadata_${index}`) as string);
 
       const newFormData = new FormData();
       newFormData.append('file', file);
@@ -69,6 +68,9 @@ export async function POST(request: Request) {
           uncropData.push(newFormData);
           break;
         case 'square':
+          if (metadata.targetRes) {
+            newFormData.append('targetRes', metadata.targetRes);
+          }
           squareData.push(newFormData);
           break;
         case 'upscale':
@@ -79,6 +81,9 @@ export async function POST(request: Request) {
             );
           }
           upscaleData.push(newFormData);
+          break;
+        default:
+          console.warn(`Unknown method: ${method} at index ${index}`);
           break;
       }
     }

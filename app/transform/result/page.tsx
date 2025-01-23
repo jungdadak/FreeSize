@@ -35,6 +35,11 @@ interface UpscaleResult extends BaseUploadResult {
   factor: 'x1' | 'x2' | 'x4';
 }
 
+interface SquareResult extends BaseUploadResult {
+  method: 'square';
+  targetRes: '1024' | '1568' | '2048';
+}
+
 interface ImageInfo {
   dimensions: ImageDimensions;
   size: string;
@@ -135,6 +140,9 @@ export default function EnhancedImageResultPage() {
               ...(item.processingOptions?.method === 'upscale' && {
                 factor: item.processingOptions.factor,
               }),
+              ...(item.processingOptions?.method === 'square' && {
+                targetRes: item.processingOptions.targetRes,
+              }),
             };
           } catch (error) {
             console.error(`Failed to upload ${item.originalFileName}:`, error);
@@ -171,6 +179,9 @@ export default function EnhancedImageResultPage() {
             }),
             ...(item.method === 'upscale' && {
               factor: (item as UpscaleResult).factor,
+            }),
+            ...(item.method === 'square' && {
+              targetRes: (item as SquareResult).targetRes,
             }),
           };
 
@@ -579,7 +590,6 @@ export default function EnhancedImageResultPage() {
                     className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1 rounded-lg text-xs transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log(`Next clicked for ${item.originalFileName}`);
                     }}
                   >
                     Next

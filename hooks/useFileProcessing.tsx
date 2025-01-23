@@ -29,7 +29,6 @@ export function useFileProcessing() {
     [files]
   );
 
-  // 파일 dimension 설정
   useEffect(() => {
     if (files.length === 0) {
       router.push('/');
@@ -63,7 +62,8 @@ export function useFileProcessing() {
       } else if (methodId === 'upscale') {
         setProcessingOption(fileIndex, { method: 'upscale', factor: 'x1' });
       } else if (methodId === 'square') {
-        setProcessingOption(fileIndex, { method: 'square' });
+        // 'square' 선택 시 targetRes 초기 설정
+        setProcessingOption(fileIndex, { method: 'square', targetRes: '1024' });
       }
     }
   };
@@ -87,6 +87,16 @@ export function useFileProcessing() {
     const currentOption = files[fileIndex].processingOption;
     if (currentOption?.method === 'upscale') {
       setProcessingOption(fileIndex, { ...currentOption, factor });
+    }
+  };
+  // 새로운 Square 타겟 해상도 변경 핸들러
+  const handleSquareTargetResChange = (
+    fileIndex: number,
+    targetRes: '1024' | '1568' | '2048'
+  ) => {
+    const currentOption = files[fileIndex].processingOption;
+    if (currentOption?.method === 'square') {
+      setProcessingOption(fileIndex, { ...currentOption, targetRes });
     }
   };
 
@@ -149,6 +159,7 @@ export function useFileProcessing() {
     handleMethodToggle,
     handleAspectRatioChange,
     handleUpscaleFactorChange,
+    handleSquareTargetResChange, // 새로운 핸들러 반환
     handleRemoveFile,
     handleCancel,
     handleProcess,

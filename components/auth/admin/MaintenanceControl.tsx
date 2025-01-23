@@ -59,9 +59,6 @@ const MaintenanceControl = () => {
       return;
     }
 
-    // formData 로그 추가
-    console.log('Submitting form data:', formData);
-
     try {
       setIsSubmitting(true);
       await updateBanner(formData);
