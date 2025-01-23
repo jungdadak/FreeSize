@@ -2,10 +2,8 @@
 'use client';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
 import { AlertCircle } from 'lucide-react';
 import { MaintenanceType } from '@/types/maintenance';
-import { variantStyles } from '@/lib/variantStyles';
 
 interface MaintenanceBannerPreviewProps {
   isActive: boolean;
@@ -22,11 +20,8 @@ export default function MaintenanceBannerPreview({
 
   return (
     <Alert
-      variant="destructive"
-      className={cn(
-        'rounded-none border-none text-white ',
-        variantStyles[type]
-      )}
+      variant={type} // variant를 type으로 변경
+      className="rounded-none border-none"
     >
       <div className="container mx-auto flex items-center gap-2">
         <AlertCircle className="h-5 w-5" />
