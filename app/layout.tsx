@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import { Providers } from './providers';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
+import { Analytics } from '@vercel/analytics/next';
 
 // Import Swiper's CSS
 import 'swiper/css';
@@ -86,7 +87,7 @@ export default async function RootLayout({
               {' '}
               {/* Navbar의 높이만큼 padding-top 추가 */}
               <div className="container mx-auto">
-                {children} <ToastContainer />
+                {children} <ToastContainer /> <Analytics />
                 <SpeedInsights />
               </div>
             </main>
