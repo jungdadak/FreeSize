@@ -21,7 +21,7 @@ export default function PreviewPage() {
     totalFiles,
     totalSize,
     uploadStatus,
-    isUploading,
+
     stage,
     handleMethodToggle,
     handleAspectRatioChange,
@@ -74,7 +74,6 @@ export default function PreviewPage() {
             <ActionButtons
               onCancel={handleCancel}
               onProcess={handleProcess}
-              isUploading={isUploading}
               stage={stage}
               uploadStatus={uploadStatus}
               hasValidOptions={files.every(

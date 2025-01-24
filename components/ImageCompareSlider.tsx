@@ -23,9 +23,10 @@ export default function ImageCompareSlider({
   const containerRef = useRef<HTMLDivElement>(null);
   const [imageWidth, setImageWidth] = useState<number>(0);
 
-  // 이미지 로드 완료 시 실제 렌더링된 이미지의 너비를 계산
+  // 이미지 로드 시 실제 렌더링된 이미지의 너비를 계산
   const handleImageLoad = useCallback(() => {
     if (containerRef.current) {
+      // 또는 e.currentTarget.getBoundingClientRect()로 직접 측정할 수도 있습니다.
       const imgElement = containerRef.current.querySelector('img');
       if (imgElement) {
         const rect = imgElement.getBoundingClientRect();
@@ -37,7 +38,6 @@ export default function ImageCompareSlider({
   const handleMove = useCallback(
     (event: MouseEvent | TouchEvent) => {
       if (!isDragging || !containerRef.current) return;
-
       event.preventDefault();
 
       const containerRect = containerRef.current.getBoundingClientRect();
@@ -100,7 +100,7 @@ export default function ImageCompareSlider({
         ref={containerRef}
         className="relative w-full aspect-video overflow-hidden rounded-lg bg-[#1E1E1E] dark:bg-[#1E1E1E] select-none"
       >
-        {/* 베이스 이미지 (처리 후) */}
+        {/* 처리 후 이미지 */}
         <div className="absolute inset-0 select-none">
           <Image
             src={afterImage}
@@ -110,11 +110,11 @@ export default function ImageCompareSlider({
             sizes="100vw"
             priority
             draggable="false"
-            onLoadingComplete={handleImageLoad}
+            onLoad={handleImageLoad} // onLoadingComplete 대신 onLoad 사용
           />
         </div>
 
-        {/* 원본 이미지 (클리핑 적용) */}
+        {/* 처리 전 이미지 (클리핑 적용) */}
         <div
           className="absolute inset-0 transition-all duration-300 ease-out select-none"
           style={{
@@ -130,6 +130,7 @@ export default function ImageCompareSlider({
             sizes="100vw"
             priority
             draggable="false"
+            onLoad={handleImageLoad}
           />
         </div>
       </div>

@@ -396,16 +396,14 @@ export default function EnhancedImageResultPage() {
                       Original
                     </h2>
                     <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
-                      <div className="h-64 flex items-center justify-start">
+                      +{' '}
+                      <div className="relative w-auto h-[256px]">
                         <Image
                           src={selectedImage.previewUrl}
                           alt="원본 이미지"
-                          width={0}
-                          height={256}
-                          className="h-64 w-auto rounded-xl"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          style={{ height: '256px', width: 'auto' }}
+                          fill
                           priority
+                          className="object-contain rounded-xl"
                         />
                       </div>
                     </div>
@@ -443,16 +441,13 @@ export default function EnhancedImageResultPage() {
                     </h2>
                     <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
                       {selectedImage.processedImageUrl ? (
-                        <div className="h-64 flex items-center justify-start rounded-xl">
+                        <div className="relative w-auto h-[256px] rounded-xl">
                           <Image
                             src={selectedImage.processedImageUrl}
                             alt="처리된 이미지"
-                            width={0}
-                            height={256}
-                            className="h-64 w-auto rounded-xl"
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                            style={{ height: '256px', width: 'auto' }}
+                            fill
                             priority
+                            className="object-contain rounded-xl"
                           />
                         </div>
                       ) : (
@@ -572,7 +567,7 @@ export default function EnhancedImageResultPage() {
                       <Image
                         src={item.processedImageUrl}
                         alt={`Image ${index + 1}`}
-                        layout="fill"
+                        fill
                         sizes="(max-width: 144px) 100vw, 144px"
                         className="object-cover rounded-lg"
                         priority

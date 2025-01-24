@@ -7,7 +7,7 @@ import { getImageDimensions } from '@/utils/image';
 
 export function useFileProcessing() {
   const router = useRouter();
-  const { isUploading, stage } = useUploadStore();
+  const { stage } = useUploadStore();
   const {
     files,
     uploadStatus,
@@ -108,16 +108,23 @@ export function useFileProcessing() {
   // 취소 핸들러
   const handleCancel = () => {
     resetFileStore();
+    useUploadStore.getState().reset();
     router.push('/');
   };
 
   // 처리 시작 핸들러
   const handleProcess = async () => {
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      setUploadStatus({
+        stage: 'idle',
+        error: '처리할 파일이 없습니다.',
+      });
+      return;
+    }
 
-    const hasProcessingOptions = files.every(
-      (file) => file.processingOption !== null
-    );
+    const hasProcessingOptions =
+      files.length > 0 && files.every((file) => file.processingOption !== null);
+
     if (!hasProcessingOptions) {
       setUploadStatus({
         stage: 'idle',
@@ -127,15 +134,14 @@ export function useFileProcessing() {
     }
 
     try {
-      // s3Key는 result 페이지에서 생성될 예정이므로 임시값 설정
       const transformDataArray = files.map((file) => ({
-        s3Key: '', // 빈 문자열로 초기화, result 페이지에서 업데이트 예정
+        s3Key: '',
         processingOptions: file.processingOption,
         originalFileName: file.file.name,
         previewUrl: file.previewUrl,
         width: file.dimensions?.width || 800,
         height: file.dimensions?.height || 600,
-        file: file.file, // 실제 파일도 전달
+        file: file.file,
       }));
 
       useTransformStore.getState().setTransformData(transformDataArray);
@@ -154,7 +160,7 @@ export function useFileProcessing() {
     totalFiles,
     totalSize,
     uploadStatus,
-    isUploading,
+
     stage,
     handleMethodToggle,
     handleAspectRatioChange,
