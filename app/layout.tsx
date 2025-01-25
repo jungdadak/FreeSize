@@ -78,7 +78,7 @@ export default async function RootLayout({
     <html lang="en" className={theme === 'dark' ? 'dark' : ''}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased 
-        bg-white dark:bg-[#141414] text-gray-900 dark:text-gray-100
+        bg-gray-100 dark:bg-[#141414] text-gray-900 dark:text-gray-100
         transition-colors duration-200`}
       >
         <Providers>
