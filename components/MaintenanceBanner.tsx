@@ -7,14 +7,26 @@ import { useMaintenance } from '@/hooks/useMaintenance';
 import { cn } from '@/lib/utils';
 
 export default function MaintenanceBanner() {
-  const { banner } = useMaintenance();
+  const { banner, isLoading } = useMaintenance();
+  const BANNER_HEIGHT = 'h-[64px]'; // 82px에서 64px로 수정
 
-  if (!banner?.isActive) return null;
+  if (isLoading) {
+    return (
+      <div
+        className={cn(BANNER_HEIGHT, 'mt-16 bg-transparent')}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (!banner?.isActive) {
+    return <div className={cn(BANNER_HEIGHT, 'mt-16')} aria-hidden="true" />;
+  }
 
   return (
     <Alert
-      variant={banner.type} // variant 속성 추가
-      className={cn('rounded-none border-none mt-16')}
+      variant={banner.type}
+      className={cn('rounded-none border-none mt-16', BANNER_HEIGHT)}
     >
       <div className="container mx-auto flex items-center gap-2">
         <AlertCircle className="h-5 w-5" />

@@ -1,6 +1,6 @@
 import { Image as ImageIcon } from 'lucide-react';
 import DragDrop from './DragDrop';
-
+import Image from 'next/image';
 const HomeBots = () => {
   return (
     <div className="md:mt-32 bg-gradient-to-b from-purple-100 dark:from-purple-900 via-white dark:via-black to-white dark:to-black text-gray-800 dark:text-white">
@@ -58,24 +58,45 @@ const HomeBots = () => {
           </div>
         </div>
 
-        {/* Example Section */}
-        <div className="mt-24">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Before & After
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-lg overflow-hidden bg-white shadow-lg dark:bg-gray-800/50">
-              <ImageIcon />
-              <p className="text-center mt-2 text-gray-500 dark:text-gray-400">
-                Before
-              </p>
+        <div className="mt-24 grid md:grid-cols-2 gap-8">
+          {/* Original Image Card */}
+          <div className="p-6 rounded-xl bg-gradient-to-b from-purple-50 to-white dark:from-purple-900/50 dark:to-transparent backdrop-blur-sm border border-purple-100 dark:border-purple-900 shadow-lg">
+            <h3 className="text-2xl font-bold text-center mb-4 text-gray-900 dark:text-white">
+              Original Image
+            </h3>
+            <div className="relative h-80 w-full rounded-md overflow-hidden mb-4">
+              <Image
+                src="/robin.jpeg"
+                alt="Original image of a robin bird, showing the base quality before AI upscaling"
+                fill
+                className="object-cover object-left"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
             </div>
-            <div className="rounded-lg overflow-hidden bg-white shadow-lg dark:bg-gray-800/50">
-              <ImageIcon />
-              <p className="text-center mt-2 text-gray-500 dark:text-gray-400">
-                After
-              </p>
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              Original (640 × 427px)
+            </p>
+          </div>
+
+          {/* Upscaled Image Card */}
+          <div className="p-6 rounded-xl bg-gradient-to-b from-purple-50 to-white dark:from-purple-900/50 dark:to-transparent backdrop-blur-sm border border-purple-100 dark:border-purple-900 shadow-lg">
+            <h3 className="text-2xl font-bold text-center mb-4 text-gray-900 dark:text-white">
+              4x Upscale Image
+            </h3>
+            <div className="relative h-80 w-full rounded-md overflow-hidden mb-4">
+              <Image
+                src="/upscale_robin.jpeg"
+                alt="AI-enhanced image of the robin bird, showcasing 4x upscaling with improved detail"
+                fill
+                className="object-cover object-left"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
             </div>
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              4x Upscaled (2560 × 1708px)
+            </p>
           </div>
         </div>
       </main>

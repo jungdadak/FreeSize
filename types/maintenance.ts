@@ -4,3 +4,9 @@ export type MaintenanceType =
   | 'warning'
   | 'info'
   | 'maintenance';
+
+export interface MaintenanceBanner {
+  isActive: boolean;
+  message: string;
+  type: MaintenanceType;
+}

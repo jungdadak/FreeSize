@@ -30,7 +30,6 @@ const maintenanceTypes = [
 const MaintenanceControl = () => {
   const { banner, isLoading, isError, error, updateBanner, isUpdating } =
     useMaintenance();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [formData, setFormData] = useState<{
     isActive: boolean;
@@ -53,6 +52,28 @@ const MaintenanceControl = () => {
     }
   }, [banner]);
 
+  if (isLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="py-10">
+          <div className="flex justify-center">
+            <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>오류 발생</AlertTitle>
+        <AlertDescription>{error?.message}</AlertDescription>
+      </Alert>
+    );
+  }
+
   const handleSubmit = async () => {
     if (formData.isActive && !formData.message.trim()) {
       showToast('메시지를 입력해주세요.', 'error');
@@ -60,7 +81,6 @@ const MaintenanceControl = () => {
     }
 
     try {
-      setIsSubmitting(true);
       await updateBanner(formData);
       showToast(
         formData.isActive
@@ -70,27 +90,8 @@ const MaintenanceControl = () => {
       );
     } catch {
       showToast('설정 변경 중 오류가 발생했습니다.', 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-10">
-        <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>오류 발생</AlertTitle>
-        <AlertDescription>{error?.message}</AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -104,7 +105,6 @@ const MaintenanceControl = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* 점검 모드 토글 */}
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
             <Label className="text-base">점검 모드</Label>
@@ -117,11 +117,11 @@ const MaintenanceControl = () => {
             onCheckedChange={(checked) =>
               setFormData((prev) => ({ ...prev, isActive: checked }))
             }
-            disabled={isSubmitting}
+            disabled={isUpdating}
             aria-label="점검 모드 토글"
           />
         </div>
-        {/* 점검 유형 선택 */}
+
         <div className="space-y-2">
           <Label>점검 유형</Label>
           <div className="grid grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ const MaintenanceControl = () => {
                   onChange={() =>
                     setFormData((prev) => ({ ...prev, type: type.value }))
                   }
-                  disabled={isSubmitting}
+                  disabled={isUpdating}
                   className="form-radio h-4 w-4 text-blue-600"
                 />
                 <div>
@@ -148,7 +148,7 @@ const MaintenanceControl = () => {
             ))}
           </div>
         </div>
-        {/* 메시지 입력 */}
+
         <div className="space-y-2">
           <Label htmlFor="message">
             메시지
@@ -162,10 +162,10 @@ const MaintenanceControl = () => {
               setFormData((prev) => ({ ...prev, message: e.target.value }))
             }
             className="h-32 resize-none"
-            disabled={isSubmitting}
+            disabled={isUpdating}
           />
-        </div>{' '}
-        {/* 미리보기 */}
+        </div>
+
         {previewMode && formData.message && (
           <div className="space-y-2">
             <Label className="text-sm">미리보기:</Label>
@@ -176,21 +176,21 @@ const MaintenanceControl = () => {
             />
           </div>
         )}
-        {/* 작업 버튼 */}
+
         <div className="flex items-center gap-4">
           <Button
             onClick={() => setPreviewMode(!previewMode)}
             variant="outline"
-            disabled={isSubmitting}
+            disabled={isUpdating}
           >
             {previewMode ? '미리보기 숨기기' : '미리보기'}
           </Button>
           <Button
             onClick={handleSubmit}
-            variant="default" // 적용 버튼의 스타일을 명확하게 변경
-            disabled={isSubmitting || isUpdating}
+            variant="default"
+            disabled={isUpdating}
           >
-            {isSubmitting || isUpdating ? (
+            {isUpdating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 처리중...

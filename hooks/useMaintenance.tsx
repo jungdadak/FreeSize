@@ -1,22 +1,16 @@
-// hooks/useMaintenance.tsx
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MaintenanceType } from '@/types/maintenance';
+// hooks/useMaintenance.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MaintenanceBanner } from '@/types/maintenance';
 
-interface MaintenanceBanner {
-  id: number;
-  isActive: boolean;
-  message: string;
-  type: MaintenanceType;
-  updatedAt: string;
-}
+const MAINTENANCE_KEY = ['maintenance'];
 
-interface UpdateMaintenanceData {
-  isActive: boolean;
-  message: string;
-  type: MaintenanceType;
-}
+const fetchMaintenance = async () => {
+  const res = await fetch('/api/admin/maintenance');
+  if (!res.ok) throw new Error('Failed to fetch maintenance status');
+  return res.json() as Promise<MaintenanceBanner>;
+};
 
-export const useMaintenance = () => {
+export function useMaintenance() {
   const queryClient = useQueryClient();
 
   const {
@@ -24,38 +18,34 @@ export const useMaintenance = () => {
     isLoading,
     isError,
     error,
-  } = useQuery<MaintenanceBanner, Error>({
-    queryKey: ['maintenance'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/maintenance');
-      if (!res.ok) throw new Error('Failed to fetch maintenance status');
-      return res.json();
-    },
+  } = useQuery({
+    queryKey: MAINTENANCE_KEY,
+    queryFn: fetchMaintenance,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
-  const mutation = useMutation<MaintenanceBanner, Error, UpdateMaintenanceData>(
-    {
-      mutationFn: async (data: UpdateMaintenanceData) => {
-        const res = await fetch('/api/admin/maintenance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error('Failed to update maintenance status');
-        return res.json();
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['maintenance'] });
-      },
-    }
-  );
+  const { mutate: updateBanner, isPending: isUpdating } = useMutation({
+    mutationFn: async (newBanner: Partial<MaintenanceBanner>) => {
+      const res = await fetch('/api/admin/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBanner),
+      });
+      if (!res.ok) throw new Error('Failed to update maintenance status');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(MAINTENANCE_KEY, data);
+    },
+  });
 
   return {
     banner,
     isLoading,
     isError,
     error,
-    updateBanner: mutation.mutate,
-    isUpdating: mutation.isPending, // React Query v5에서는 isPending 사용
+    updateBanner,
+    isUpdating,
   };
-};
+}
