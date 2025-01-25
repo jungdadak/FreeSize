@@ -8,7 +8,7 @@ const HomeBots = () => {
       <div className="relative overflow-hidden">
         <div
           className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url("/bgtemp.jpg")' }}
+          style={{ backgroundImage: 'url("/bgtemp.webp")' }}
         />
         <div className="absolute inset-0 bg-white/40 dark:bg-[#1E1E1E]/50" />
 
@@ -66,7 +66,7 @@ const HomeBots = () => {
             </h3>
             <div className="relative h-80 w-full rounded-md overflow-hidden mb-4">
               <Image
-                src="/robin.jpeg"
+                src="/robin.webp"
                 alt="Original image of a robin bird, showing the base quality before AI upscaling"
                 fill
                 className="object-cover object-left"
@@ -86,7 +86,7 @@ const HomeBots = () => {
             </h3>
             <div className="relative h-80 w-full rounded-md overflow-hidden mb-4">
               <Image
-                src="/upscale_robin.jpeg"
+                src="/upscale_robin.webp"
                 alt="AI-enhanced image of the robin bird, showcasing 4x upscaling with improved detail"
                 fill
                 className="object-cover object-left"

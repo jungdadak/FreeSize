@@ -54,7 +54,7 @@ export default {
       },
       backgroundImage: {
         'gradient-rainbow': 'linear-gradient(to right, #7928CA, #FF0080)',
-        'hero-pattern': "url('/bgtemp.jpg')", // 수정된 부분
+        'hero-pattern': "url('/bgtemp.webp')", // 수정된 부분
       },
       keyframes: {
         'fade-in': {
