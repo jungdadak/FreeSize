@@ -8,6 +8,7 @@ import { Providers } from './providers';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import ClientMaintenanceBanner from '@/components/layout/ClientMaintenanceBanner';
 import { Analytics } from '@vercel/analytics/next';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 // Import Swiper's CSS
 import 'swiper/css';
@@ -74,6 +75,16 @@ export default async function RootLayout({
   const themeFromCookie = (await cookies()).get('theme');
   const theme = themeFromCookie?.value || 'dark';
 
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ['maintenance'],
+    queryFn: async () => {
+      const res = await fetch('http://localhost:3000/api/admin/maintenance');
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
   return (
     <html lang="en" className={theme === 'dark' ? 'dark' : ''}>
       <body
@@ -81,16 +92,14 @@ export default async function RootLayout({
         bg-gray-100 dark:bg-[#141414] text-gray-900 dark:text-gray-100
         transition-colors duration-200`}
       >
-        <Providers>
+        <Providers dehydratedState={dehydrate(queryClient)}>
           <div className="flex flex-col min-h-screen">
-            {' '}
             <ClientMaintenanceBanner />
             <Navbar />
             <main className="flex-grow lg:pt-16 pb-16">
-              {' '}
-              {/* Navbar의 높이만큼 padding-top 추가 */}
               <div className="container mx-auto">
-                {children} <ToastContainer />
+                {children}
+                <ToastContainer />
                 <Analytics />
                 <SpeedInsights />
               </div>
