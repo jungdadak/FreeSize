@@ -4,10 +4,10 @@ import Getstarted from '@/components/Btn/Getstarted-home';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title:
-    'AI Image Processing Tools for LORA Training | Free Upscale, Uncrop & Square',
+  title: 'AI Image Tools for LORA | Free Processing',
   description:
-    'Prepare your LORA training dataset with our free AI tools. Upscale images for better quality, uncrop for composition, and convert to squares for consistent training. Perfect for preparing 20-50 images for LORA model training.',
+    'Free AI tools for LORA training images. Upscale quality, uncrop composition, and convert to squares. Perfect for 20-50 image datasets.',
+
   keywords:
     'LORA training, AI image processing, image dataset preparation, upscaling for LORA, image uncropping, square conversion, LORA model training, AI fine-tuning',
   openGraph: {
@@ -79,9 +79,11 @@ export default function Home() {
             </span>
           </h2>
           <p className="mt-6 text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl">
-            Upscale resolution, uncrop with AI generation, and perfect square
-            conversions. Transform your images with advanced AI technology -
-            completely free!
+            Upscale resolution up to 4x, uncrop images with advanced AI
+            generation, and create perfect square conversions for consistent
+            training. Our free tools optimize your LORA training datasets with
+            state-of-the-art AI technology. Ideal for processing 20-50
+            high-quality images for model training.
           </p>
           <Getstarted targetId="homebots" />
           <div className="mt-32" id="homebots">

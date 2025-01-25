@@ -47,7 +47,7 @@ interface ImageInfo {
 
 interface ProcessedResult {
   success: boolean;
-  resizedImg?: string;
+  resized_img?: string;
   message?: string;
 }
 
@@ -205,7 +205,7 @@ export default function EnhancedImageResultPage() {
           result.results.forEach(
             (processedResult: ProcessedResult, index: number) => {
               if (processedResult.success) {
-                const base64Image = processedResult.resizedImg;
+                const base64Image = processedResult.resized_img;
                 if (base64Image) {
                   useTransformStore
 

@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: '%s | FreeSizeAI',
   },
   description:
-    'Free AI-powered image processing tools optimized for LORA model training dataset preparation',
+    'Free AI-powered image preprocessing tools optimized for LORA training dataset preparation',
   keywords:
     'LORA training, AI image processing, image dataset preparation, upscaling for LORA, image uncropping, square conversion, LORA model training, AI fine-tuning',
   openGraph: {
