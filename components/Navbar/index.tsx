@@ -41,12 +41,12 @@ export default function Navbar() {
           ${
             isAdmin
               ? 'bg-gradient-to-r from-blue-900 to-purple-900 text-white'
-              : 'bg-white dark:bg-[#111111]'
+              : 'bg-white dark:bg-[#2A2E2D]'
           }
           transition-colors duration-200
         `}
       >
-        <div className="container mx-auto h-full px-6 flex items-center justify-between">
+        <div className="container mx-auto h-full pl-2 pr-6 flex items-center justify-between">
           <div className="flex-shrink-0">
             <Logo />
           </div>

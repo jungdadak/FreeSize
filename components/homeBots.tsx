@@ -14,12 +14,12 @@ const HomeBots = () => {
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-24">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 dark:text-white">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 dark:text-white">
               Transform Your Images with
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-pink-700 dark:from-purple-400 dark:to-pink-400">
                 AI Upscaling
               </span>
-            </h1>
+            </h2>
             <p className="text-xl text-white dark:text-gray-200 max-w-2xl mx-auto font-medium">
               Enhance image quality, increase resolution, and remove noise with
               our advanced AI technology. Get professional results in seconds.

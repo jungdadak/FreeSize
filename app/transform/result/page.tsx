@@ -389,15 +389,14 @@ export default function EnhancedImageResultPage() {
             {selectedImage ? (
               <div className="mb-8">
                 {/* Before and After Images with Slider */}
-                <div className="flex justify-center mb-8">
+                <div className="flex w-full justify-center mb-8 gap-1">
                   {/* Original Image */}
-                  <div className="flex flex-col p-4 w-fit">
+                  <div className="flex flex-col p-4 flex-1 max-w-xl">
                     <h2 className="text-xl font-semibold mb-4 text-gray-200">
                       Original
                     </h2>
-                    <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
-                      +{' '}
-                      <div className="relative w-auto h-[256px]">
+                    <div className="rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e] w-full">
+                      <div className="relative w-full h-96">
                         <Image
                           src={selectedImage.previewUrl}
                           alt="원본 이미지"
@@ -435,13 +434,13 @@ export default function EnhancedImageResultPage() {
                   </div>
 
                   {/* Enhanced Image */}
-                  <div className="flex flex-col p-4 w-fit">
+                  <div className="flex flex-col p-4 flex-1 max-w-xl">
                     <h2 className="text-xl font-semibold mb-4 text-gray-200">
                       Result
                     </h2>
-                    <div className="inline-block rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e]">
+                    <div className="rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e] w-full">
                       {selectedImage.processedImageUrl ? (
-                        <div className="relative w-auto h-[256px] rounded-xl">
+                        <div className="relative w-full h-96">
                           <Image
                             src={selectedImage.processedImageUrl}
                             alt="처리된 이미지"
@@ -451,11 +450,12 @@ export default function EnhancedImageResultPage() {
                           />
                         </div>
                       ) : (
-                        <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                        <div className="h-96 flex items-center justify-center text-gray-500 dark:text-gray-400">
                           이미지 처리 중...
                         </div>
                       )}
                     </div>
+
                     <div className="mt-3 space-y-1">
                       <h3 className="text-sm font-medium text-gray-300 tracking-tight">
                         {getProcessingText(selectedImage)}

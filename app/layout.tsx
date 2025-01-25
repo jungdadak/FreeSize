@@ -14,7 +14,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import ToastContainer from '@/components/Toast/ToastContainer';
-import AdComponent from '@/goggleAdsense/adComponent';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -91,7 +90,7 @@ export default async function RootLayout({
               {' '}
               {/* Navbar의 높이만큼 padding-top 추가 */}
               <div className="container mx-auto">
-                {children} <ToastContainer /> <AdComponent />
+                {children} <ToastContainer />
                 <Analytics />
                 <SpeedInsights />
               </div>

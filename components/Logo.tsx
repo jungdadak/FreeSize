@@ -1,55 +1,31 @@
 import React from 'react';
-import Link from 'next/link';
 
 const Logo = () => (
-  <Link href="/" className="flex items-center gap-1">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 300 100"
-      className="h-20"
+  <div className="h-16 flex flex-col items-center justify-center text-white">
+    {/* 상단 텍스트 */}
+    <div
+      className="text-3xl font-bold tracking-widest"
+      style={{
+        fontFamily: 'Arial, sans-serif',
+        letterSpacing: '0.3em',
+        textShadow: '0 0 4px black', // 윤곽선 추가
+        marginTop: '4px', // 아래로 내림
+      }}
     >
-      <defs>
-        <linearGradient id="freeGradient" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="#FF7EB3" />
-          <stop offset="100%" stopColor="#FFB347" />
-        </linearGradient>
-        <linearGradient id="sGradient" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="#65C7F7" />
-          <stop offset="100%" stopColor="#0052D4" />
-        </linearGradient>
-        <linearGradient id="izeGradient" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="#34E89E" />
-          <stop offset="100%" stopColor="#0F3443" />
-        </linearGradient>
-      </defs>
-      <g>
-        {/* FREE text */}
-        <text
-          x="10%"
-          y="50%"
-          dominantBaseline="middle"
-          textAnchor="start"
-          fontSize="40"
-          fontFamily="Arial, sans-serif"
-          fill="url(#freeGradient)"
-        >
-          FREE
-        </text>
-
-        <text
-          x="160"
-          y="50%"
-          dominantBaseline="middle"
-          textAnchor="start"
-          fontSize="40"
-          fontFamily="Arial, sans-serif"
-          fill="url(#izeGradient)"
-        >
-          SIZE
-        </text>
-      </g>
-    </svg>
-  </Link>
+      FREE SIZE
+    </div>
+    {/* 하단 텍스트 */}
+    <div
+      className="text-[10px] font-light tracking-[0.15em] "
+      style={{
+        fontFamily: 'Arial, sans-serif',
+        color: '#FF6B3D',
+        textShadow: '0 0 1px black', // 윤곽선 추가
+      }}
+    >
+      IMAGE PREPROCESSING
+    </div>
+  </div>
 );
 
 export default Logo;
