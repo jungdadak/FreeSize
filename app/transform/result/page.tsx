@@ -13,6 +13,8 @@ import {
 import ImageCompareSlider from '@/components/ImageCompareSlider';
 import { useFileUpload } from '@/services/uploadService';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import { Download } from 'lucide-react';
+import JSZip from 'jszip';
 
 type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
 
@@ -65,10 +67,50 @@ interface ProcessingStatus {
 }
 
 export default function EnhancedImageResultPage() {
+  const handleDownloadAll = async () => {
+    if (!transformData) return;
+    const successfulImages = transformData.filter(
+      (item) => item.processedImageUrl && item.originalFileName
+    );
+
+    const zip = new JSZip();
+
+    for (const item of successfulImages) {
+      try {
+        const base64Data = item.processedImageUrl?.split(',')[1];
+        if (!base64Data) continue;
+
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        zip.file(`processed_${item.originalFileName}`, bytes, { binary: true });
+      } catch (error) {
+        console.error(`압축 실패: ${item.originalFileName}`, error);
+      }
+    }
+
+    try {
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = 'processed_images.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('ZIP 파일 생성 실패:', error);
+    }
+  };
+
   const { transformData } = useTransformStore();
   const router = useRouter();
   const uploadService = useFileUpload();
   const [isZoomed, setIsZoomed] = useState(false);
+  const [processingResults, setProcessingResults] = useState<
+    { originalFileName: string; success: boolean; message: string }[]
+  >([]);
 
   const [imageInfos, setImageInfos] = useState<Record<string, ImageInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -202,22 +244,32 @@ export default function EnhancedImageResultPage() {
 
         // 처리 결과 저장
         if (result.results) {
-          result.results.forEach(
-            (processedResult: ProcessedResult, index: number) => {
-              if (processedResult.success) {
-                const base64Image = processedResult.resized_img;
-                if (base64Image) {
-                  useTransformStore
+          // 결과를 이미지와 매핑
+          result.results.forEach((processedResult, index) => {
+            const originalFileName = transformData[index].originalFileName;
 
-                    .getState()
-                    .updateProcessedImage(
-                      transformData[index].originalFileName,
-                      `data:image/jpeg;base64,${base64Image}`
-                    );
-                }
+            // `processingResults` 상태 업데이트
+            const newResults = result.results.map((processedResult, index) => ({
+              originalFileName: transformData[index].originalFileName,
+              success: processedResult.success,
+              message: processedResult.message || 'Unknown error',
+            }));
+
+            setProcessingResults(newResults);
+
+            // 성공한 이미지만 업데이트
+            if (processedResult.success) {
+              const base64Image = processedResult.resized_img;
+              if (base64Image) {
+                useTransformStore
+                  .getState()
+                  .updateProcessedImage(
+                    originalFileName,
+                    `data:image/jpeg;base64,${base64Image}`
+                  );
               }
             }
-          );
+          });
         }
 
         // 완료 처리
@@ -320,35 +372,77 @@ export default function EnhancedImageResultPage() {
 
   if (!transformData) return null;
 
+  const totalCount = processingResults.length;
+  const successCount = processingResults.filter((r) => r.success).length;
+  const failureCount = totalCount - successCount;
   // 진행 상태 UI
   if (processingStatus.stage !== 'completed') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e] text-white">
-        <div className="w-96 space-y-4">
-          <h2 className="text-xl font-semibold text-center">
+      <div className="min-h-screen bg-[#1e1e1e] text-white">
+        <div className="max-w-4xl mx-auto p-4">
+          <h2 className="text-xl font-semibold text-center mb-6">
             {processingStatus.stage === 'uploading'
               ? '파일 업로드 중...'
               : '이미지 처리 중...'}
           </h2>
-          <div className="text-sm text-center text-gray-400">
-            {processingStatus.stage === 'uploading' &&
-              `${processingStatus.currentItemIndex + 1} / ${
-                processingStatus.totalItems
-              }`}
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
+
+          {/* 전체 진행률 바 */}
+          <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all"
+              className="bg-blue-500 h-2 rounded-full"
               style={{ width: `${processingStatus.progress}%` }}
             />
           </div>
-          <p className="text-sm text-center text-gray-400">
-            {processingStatus.currentFile}
-          </p>
+
+          {/* 개별 이미지 처리 상태 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {transformData.map((item, index) => {
+              const result = processingResults.find(
+                (res) => res.originalFileName === item.originalFileName
+              );
+
+              return (
+                <div
+                  key={index}
+                  className="flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-lg"
+                >
+                  <div className="relative w-32 h-32 mb-2">
+                    <Image
+                      src={item.previewUrl}
+                      alt={item.originalFileName}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                  </div>
+                  <h3 className="text-sm font-medium">
+                    {item.originalFileName}
+                  </h3>
+
+                  {/* 처리 상태 표시 */}
+                  {result ? (
+                    result.success ? (
+                      <p className="text-sm text-green-400 mt-2">
+                        처리 완료 ✅
+                      </p>
+                    ) : (
+                      <p className="text-sm text-red-400 mt-2">
+                        처리 실패 ❌
+                        <br />
+                        {result.message}
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-sm text-gray-400 mt-2">처리 중...</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
-  } // Filter transformData based on search query
+  }
+  // Filter transformData based on search query
   const filteredData = transformData.filter((item) =>
     item.originalFileName.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -356,6 +450,49 @@ export default function EnhancedImageResultPage() {
   return (
     <div className="bg-[#1e1e1e] text-white">
       <main>
+        <div className="bg-gradient-to-br from-[#2e2e2e] to-[#262626] rounded-xl p-8 mb-8 mx-auto max-w-4xl shadow-lg border border-gray-800">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-200 mb-1">
+                처리 결과
+              </h2>
+              <p className="text-gray-500 text-sm">
+                이미지 처리가 완료되었습니다
+              </p>
+            </div>
+            {successCount > 0 && (
+              <button
+                onClick={handleDownloadAll}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-blue-500/20"
+              >
+                <Download size={16} />
+                전체 다운로드 ({successCount})
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#333333]/50 rounded-lg p-6 backdrop-blur-sm border border-gray-700/50">
+              <div className="text-3xl font-bold mb-1">{totalCount}</div>
+              <div className="text-sm text-gray-400 font-medium">전체 처리</div>
+            </div>
+
+            <div className="bg-emerald-900/10 rounded-lg p-6 backdrop-blur-sm border border-emerald-800/30">
+              <div className="text-3xl font-bold text-emerald-400 mb-1">
+                {successCount}
+              </div>
+              <div className="text-sm text-gray-400 font-medium">성공</div>
+            </div>
+
+            <div className="bg-red-900/10 rounded-lg p-6 backdrop-blur-sm border border-red-800/30">
+              <div className="text-3xl font-bold text-red-400 mb-1">
+                {failureCount}
+              </div>
+              <div className="text-sm text-gray-400 font-medium">실패</div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center mb-4">
           <h1 className="text-3xl font-semibold">Image Enhancements</h1>
         </div>

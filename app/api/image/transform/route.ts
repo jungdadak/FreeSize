@@ -9,13 +9,13 @@ async function sendToSpringApi(formData: FormData, url: string) {
 
     const response = await fetch(url, {
       method: 'POST',
-      credentials: 'include', // 필요한 경우 쿠키 포함
-      mode: 'cors', // CORS 설정
+      credentials: 'include',
+      mode: 'cors',
       signal: controller.signal,
       body: formData,
     });
 
-    clearTimeout(timeoutId); // 성공적인 응답을 받았으면 타이머 해제
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -24,13 +24,11 @@ async function sendToSpringApi(formData: FormData, url: string) {
 
     return response.json();
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error(`Request timeout for ${url}`);
-      }
-    }
     console.error(`Error sending to ${url}:`, error);
-    throw error;
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 }
 
@@ -88,32 +86,47 @@ export async function POST(request: Request) {
       }
     }
 
-    try {
-      console.log('5️⃣ Spring API 요청 시작');
+    console.log('5️⃣ Spring API 요청 시작');
 
-      const results = await Promise.all([
-        ...uncropData.map((data) =>
-          sendToSpringApi(data, `${SPRING_API_BASE}/uncrop`)
-        ),
-        ...upscaleData.map((data) =>
-          sendToSpringApi(data, `${SPRING_API_BASE}/upscale`)
-        ),
-        ...squareData.map((data) =>
-          sendToSpringApi(data, `${SPRING_API_BASE}/square`)
-        ),
-      ]);
+    const requests = [
+      ...uncropData.map((data) =>
+        sendToSpringApi(data, `${SPRING_API_BASE}/uncrop`)
+      ),
+      ...upscaleData.map((data) =>
+        sendToSpringApi(data, `${SPRING_API_BASE}/upscale`)
+      ),
+      ...squareData.map((data) =>
+        sendToSpringApi(data, `${SPRING_API_BASE}/square`)
+      ),
+    ];
 
-      console.log('6️⃣ API 요청 완료, 결과:', results);
-      return NextResponse.json({ success: true, results });
-    } catch (error) {
-      console.error('❌ API 요청 실패:', error);
-      return NextResponse.json(
-        {
-          error: error instanceof Error ? error.message : 'API request failed',
-        },
-        { status: 500 }
-      );
-    }
+    const results = await Promise.allSettled(requests);
+
+    // 성공한 요청만 필터링
+    const successfulResults = results
+      .filter(
+        (result): result is PromiseFulfilledResult<unknown> =>
+          result.status === 'fulfilled'
+      )
+      .map((result) => result.value);
+
+    // 실패한 요청만 필터링
+    const failedResults = results
+      .filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected'
+      )
+      .map((result) => result.reason);
+
+    console.log('6️⃣ API 요청 완료');
+    console.log('✅ 성공:', successfulResults);
+    console.log('❌ 실패:', failedResults);
+
+    return NextResponse.json({
+      success: true,
+      results: successfulResults,
+      errors: failedResults,
+    });
   } catch (error) {
     console.error('❌ 전체 오류:', error);
     return NextResponse.json(
