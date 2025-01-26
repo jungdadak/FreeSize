@@ -141,7 +141,7 @@ export default function ImageCompareSlider({
         style={{ width: imageWidth > 0 ? `${imageWidth}px` : '100%' }}
       >
         {/* 슬라이더 컨트롤 */}
-        <div className="px-2">
+        <div className="px-2 w-[70%] mx-auto">
           <input
             type="range"
             min="0"
@@ -157,10 +157,10 @@ export default function ImageCompareSlider({
 
         {/* 라벨 */}
         <div className="flex justify-between w-full mt-2 px-2">
-          <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+          <div className="bg-[#1E1E1E]/50 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
             {beforeLabel}
           </div>
-          <div className="bg-[#1E1E1E]/50 dark:bg-white/50 text-white dark:text-black text-sm px-3 py-1 rounded-md shadow-md">
+          <div className="bg-[#1E1E1E]/50 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
             {afterLabel}
           </div>
         </div>

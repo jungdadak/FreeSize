@@ -16,7 +16,7 @@ import {
   UncropResult,
   UpscaleResult,
 } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ImageComparison } from './ImageComparison';
@@ -344,169 +344,163 @@ export default function EnhancedImageResultPage() {
   );
 
   return (
-    <div className="bg-[#1e1e1e] text-white">
+    <div className="bg-black text-white">
       <main>
-        <Card className="bg-[#1e1e1e] shadow-2xl border mb-10 max-w-4xl">
-          <CardHeader>
+        {/* Summary Card */}
+        <Card className="bg-black shadow-lg border-gray-800 max-h-48 mb-4">
+          <CardHeader className="py-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-3xl font-bold text-white">
-                Summary
-              </CardTitle>
+              <h3 className="text-lg font-semibold text-white">Summary</h3>
               {!loading && (
                 <Button
                   onClick={handleDownloadAll}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4"
+                  className="bg-black hover:bg-gray-800 text-white h-8 px-2 text-sm"
                 >
-                  <Download size={16} />
-                  전체 다운로드 ({successCount})
+                  <Download size={14} className="mr-1" />
+                  Success ({successCount})
                 </Button>
               )}
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="py-2">
             {loading && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div className="bg-gray-900 p-6 rounded-xl flex flex-col items-center gap-3">
-                  <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-                  <p className="text-gray-300">처리중...</p>
+                <div className="bg-gray-900 p-4 rounded-lg flex items-center gap-2">
+                  <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                  <p className="text-gray-300 text-sm">처리중...</p>
                 </div>
               </div>
             )}
 
-            <div className="flex gap-3">
-              <div className="w-40 space-y-3">
-                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
-                  <FileText className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                  <p className="text-lg font-bold text-gray-100">
-                    {totalCount}
+            <div className="flex gap-2">
+              <div className="flex gap-2">
+                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                  <FileText className="w-4 h-4 text-gray-400 mr-1" />
+                  <p className="text-sm font-bold text-gray-100">
+                    전체 ({totalCount})
                   </p>
-                  <p className="text-xs text-gray-400">전체</p>
                 </div>
-                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                  <p className="text-lg font-bold text-green-400">
-                    {successCount}
+                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
+                  <p className="text-sm font-bold text-green-400">
+                    성공({successCount})
                   </p>
-                  <p className="text-xs text-gray-400">성공</p>
                 </div>
-                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
-                  <XCircle className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                  <p className="text-lg font-bold text-red-400">
-                    {failureCount}
+                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                  <XCircle className="w-4 h-4 text-red-500 mr-1" />
+                  <p className="text-sm font-bold text-red-400">
+                    실패({failureCount})
                   </p>
-                  <p className="text-xs text-gray-400">실패</p>
                 </div>
               </div>
 
-              <div className="grow space-y-3">
-                <ScrollArea className="h-32 rounded-lg border border-green-800/30 bg-black/20 ">
-                  {processingResults
-                    .filter((result) => result.success)
-                    .map((result, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center  mb-2 rounded-lg bg-green-900/20 border border-green-600/30"
-                      >
-                        <span className="text-sm text-gray-200 truncate">
-                          {result.originalFileName}
-                        </span>
-                        <Badge className="bg-green-600/20 text-green-400">
-                          성공
-                        </Badge>
-                      </div>
-                    ))}
-                </ScrollArea>
-
-                <ScrollArea className="h-32 rounded-lg border border-red-800/30 bg-black/20">
-                  {processingResults
-                    .filter((result) => !result.success)
-                    .map((result, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center mb-2 rounded-lg bg-red-900/20 border border-red-600/30"
-                      >
-                        <span className="text-sm text-gray-200 truncate">
-                          {result.originalFileName}
-                        </span>
-                        <Badge className="bg-red-600/20 text-red-400">
-                          실패
-                        </Badge>
-                      </div>
-                    ))}
-                </ScrollArea>
-              </div>
+              <ScrollArea className="h-24 grow rounded border border-gray-800 bg-black/20">
+                {processingResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className={`flex justify-between items-center mb-1 px-2 py-1 rounded ${
+                      result.success
+                        ? 'bg-green-900/20 border border-green-600/30'
+                        : 'bg-red-900/20 border border-red-600/30'
+                    }`}
+                  >
+                    <span className="text-xs text-gray-200 truncate">
+                      {result.originalFileName}
+                    </span>
+                    <Badge
+                      className={
+                        result.success
+                          ? 'bg-green-600/20 text-green-400 text-xs'
+                          : 'bg-red-600/20 text-red-400 text-xs'
+                      }
+                    >
+                      {result.success ? '성공' : '실패'}
+                    </Badge>
+                  </div>
+                ))}
+              </ScrollArea>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex items-center mb-4">
-          <h1 className="text-3xl font-semibold">Image Enhancements</h1>
-        </div>
+        {/* Image Enhancements Card */}
+        <Card className="bg-black shadow-lg border-gray-800">
+          <CardHeader className="py-2">
+            <h3 className="text-lg font-semibold text-white">
+              Image Enhancements
+            </h3>
+          </CardHeader>
 
-        {/* Selected Image Details */}
-        {selectedImage ? (
-          <ImageComparison
-            selectedImage={selectedImage}
-            imageInfos={imageInfos}
-            getProcessingText={getProcessingText}
-            formatDimensions={formatDimensions}
-            isZoomed={isZoomed}
-            setIsZoomed={setIsZoomed}
-          />
-        ) : (
-          <div className="mb-8 text-center text-gray-500">
-            선택된 이미지가 없습니다.
-          </div>
-        )}
-
-        {/* Details Button */}
-        <div className="w-[40%] text-center font-bold bg-[#2e2e2e] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
-          Queue
-        </div>
-
-        {/* Image Grid */}
-        <div className="grid grid-cols-3 lg:grid-cols-5 gap-4 max-w-full mx-auto p-4">
-          {filteredData.map((item: TransformData, index) => (
-            <div
-              key={index}
-              className={`space-y-1.5 cursor-pointer border-2 ${
-                selectedImage?.originalFileName === item.originalFileName
-                  ? 'border-green-500'
-                  : 'border-transparent'
-              } rounded-lg p-2`}
-              onClick={() => setSelectedImage(item)}
-            >
-              <div className="relative aspect-[3/4] w-full">
-                {item.processedImageUrl ? (
-                  <Image
-                    src={item.processedImageUrl}
-                    alt={`Image ${index + 1}`}
-                    fill
-                    sizes="(max-width: 144px) 100vw, 144px"
-                    className="object-cover rounded-lg"
-                    priority
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#2E2E2E] rounded-lg flex items-center justify-center">
-                    <span className="text-gray-500 text-xs">No Image</span>
-                  </div>
-                )}
+          <CardContent className="py-2">
+            {selectedImage ? (
+              <ImageComparison
+                selectedImage={selectedImage}
+                imageInfos={imageInfos}
+                getProcessingText={getProcessingText}
+                formatDimensions={formatDimensions}
+                isZoomed={isZoomed}
+                setIsZoomed={setIsZoomed}
+              />
+            ) : (
+              <div className="mb-8 text-center text-gray-500">
+                선택된 이미지가 없습니다.
               </div>
-              <div className="text-xs truncate px-1">
-                {item.originalFileName}
-              </div>
-              <button
-                className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1 rounded-lg text-xs transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                Next
-              </button>
-            </div>
-          ))}
-        </div>
+            )}
+
+            <Card className="bg-black border-gray-800 mt-4">
+              <CardHeader>
+                <h4 className="text-sm font-semibold">Queue</h4>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 lg:grid-cols-5 gap-4">
+                  {filteredData.map((item, index) => (
+                    <div
+                      key={index}
+                      className={`space-y-1.5 cursor-pointer border-2 ${
+                        selectedImage?.originalFileName ===
+                        item.originalFileName
+                          ? 'border-green-500'
+                          : 'border-gray-800'
+                      } rounded-lg p-2 bg-gray-900/20`}
+                      onClick={() => setSelectedImage(item)}
+                    >
+                      <div className="relative aspect-[3/4] w-full">
+                        {item.processedImageUrl ? (
+                          <Image
+                            src={item.processedImageUrl}
+                            alt={`Image ${index + 1}`}
+                            fill
+                            sizes="(max-width: 144px) 100vw, 144px"
+                            className="object-cover rounded-lg"
+                            priority
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">
+                              No Image
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-300 truncate px-1">
+                        {item.originalFileName}
+                      </div>
+                      <Button
+                        className="w-full bg-black hover:bg-gray-800 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
