@@ -78,9 +78,9 @@ export default function EnhancedImageResultPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery] = useState('');
   const [selectedImage, setSelectedImage] = useState<TransformData | null>(
-    // transformData가 있으면 0번째 이미지 선택, 없으면 null
-    transformData && transformData.length > 0 ? transformData[0] : null
+    null
   );
+
   const [processingStatus, setProcessingStatus] =
     useState<ProcessingStatusType>({
       stage: 'uploading',
@@ -89,6 +89,21 @@ export default function EnhancedImageResultPage() {
       currentFile: '',
       progress: 0,
     });
+  useEffect(() => {
+    if (
+      processingStatus.stage === 'completed' &&
+      transformData &&
+      processingResults.length > 0
+    ) {
+      const successfulImage = transformData.find((item) => {
+        const result = processingResults.find(
+          (r) => r.originalFileName === item.originalFileName
+        );
+        return result?.success && !!item.processedImageUrl;
+      });
+      if (successfulImage) setSelectedImage(successfulImage);
+    }
+  }, [processingStatus.stage, transformData, processingResults]);
   useEffect(() => {
     if (transformData && transformData.length > 0) {
       // 첫 번째 이미지의 완전한 데이터를 찾아서 설정
@@ -339,10 +354,23 @@ export default function EnhancedImageResultPage() {
   const successCount = processingResults.filter((r) => r.success).length;
   const failureCount = totalCount - successCount;
   // Filter transformData based on search query
-  const filteredData = transformData.filter((item) =>
-    item.originalFileName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredData = transformData.filter((item) => {
+    // 1. 검색어 필터링
+    const matchesSearch = item.originalFileName
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
 
+    // 2. 처리 성공 여부 필터링
+    const processingResult = processingResults.find(
+      (result) => result.originalFileName === item.originalFileName
+    );
+    const isProcessingSuccess = processingResult?.success ?? false;
+
+    // 3. 실제 이미지 URL이 있는지 확인
+    const hasProcessedImage = !!item.processedImageUrl;
+
+    return matchesSearch && isProcessingSuccess && hasProcessedImage;
+  });
   return (
     <div className="bg-black text-white">
       <main>
@@ -423,6 +451,44 @@ export default function EnhancedImageResultPage() {
             </div>
           </CardContent>
         </Card>
+        {/*queue섹션*/}
+        <Card className="bg-black border-gray-800 mt-4">
+          <CardHeader>
+            <h4 className="text-lg font-semibold">
+              Queue ({filteredData.length})
+            </h4>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-32 w-full">
+              <div className="flex p-2 gap-2">
+                {filteredData.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`flex-none w-24 cursor-pointer ${
+                      selectedImage?.originalFileName === item.originalFileName
+                        ? 'ring-2 ring-green-500'
+                        : ''
+                    }`}
+                    onClick={() => setSelectedImage(item)}
+                  >
+                    <div className="relative aspect-square w-full">
+                      <Image
+                        src={item.processedImageUrl || item.previewUrl}
+                        alt={item.originalFileName}
+                        fill
+                        className="object-cover rounded"
+                        priority
+                      />
+                    </div>
+                    <div className="text-[10px] text-gray-400 truncate mt-1">
+                      {item.originalFileName}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
 
         {/* Image Enhancements Card */}
         <Card className="bg-black shadow-lg border-gray-800">
@@ -447,58 +513,6 @@ export default function EnhancedImageResultPage() {
                 선택된 이미지가 없습니다.
               </div>
             )}
-
-            <Card className="bg-black border-gray-800 mt-4">
-              <CardHeader>
-                <h4 className="text-sm font-semibold">Queue</h4>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 lg:grid-cols-5 gap-4">
-                  {filteredData.map((item, index) => (
-                    <div
-                      key={index}
-                      className={`space-y-1.5 cursor-pointer border-2 ${
-                        selectedImage?.originalFileName ===
-                        item.originalFileName
-                          ? 'border-green-500'
-                          : 'border-gray-800'
-                      } rounded-lg p-2 bg-gray-900/20`}
-                      onClick={() => setSelectedImage(item)}
-                    >
-                      <div className="relative aspect-[3/4] w-full">
-                        {item.processedImageUrl ? (
-                          <Image
-                            src={item.processedImageUrl}
-                            alt={`Image ${index + 1}`}
-                            fill
-                            sizes="(max-width: 144px) 100vw, 144px"
-                            className="object-cover rounded-lg"
-                            priority
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">
-                              No Image
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-300 truncate px-1">
-                        {item.originalFileName}
-                      </div>
-                      <Button
-                        className="w-full bg-black hover:bg-gray-800 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </CardContent>
         </Card>
       </main>

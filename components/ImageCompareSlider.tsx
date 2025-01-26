@@ -137,11 +137,11 @@ export default function ImageCompareSlider({
 
       {/* 슬라이더와 라벨을 포함하는 컨테이너 */}
       <div
-        className="relative mt-4"
+        className="relative mt-4 max-w-[100%]"
         style={{ width: imageWidth > 0 ? `${imageWidth}px` : '100%' }}
       >
         {/* 슬라이더 컨트롤 */}
-        <div className="px-2 w-[70%] mx-auto">
+        <div className="px-2  ">
           <input
             type="range"
             min="0"

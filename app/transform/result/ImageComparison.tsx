@@ -137,34 +137,34 @@ export const ImageComparison = ({
           </Card>
         </div>
 
-        <Card className="bg-black border-gray-800">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-200">
-                Side-by-side Comparison
-              </h2>
-              <Button
-                onClick={() => setIsZoomed(!isZoomed)}
-                variant="outline"
-                size="sm"
-                className="bg-gray-900 hover:bg-gray-800 border-gray-700"
-              >
-                {isZoomed ? (
-                  <>
-                    <Minimize2 className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Close</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Maximize</span>
-                  </>
-                )}
-              </Button>
-            </div>
+        <Card className="bg-black border-gray-800 max-w-3xl">
+          <CardContent>
+            <div className="p-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-gray-200">
+                  Side-by-side Comparison
+                </h2>
+                <Button
+                  onClick={() => setIsZoomed(!isZoomed)}
+                  variant="outline"
+                  size="sm"
+                  className="bg-gray-900 hover:bg-gray-800 border-gray-700"
+                >
+                  {isZoomed ? (
+                    <>
+                      <Minimize2 className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Close</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Maximize</span>
+                    </>
+                  )}
+                </Button>
+              </div>
 
-            <div className="w-full mx-auto">
-              <div className="aspect-square md:aspect-video relative w-full">
+              <div className="relative max-w-2xl  rounded-lg">
                 <ImageCompareSlider
                   beforeImage={selectedImage.previewUrl}
                   afterImage={selectedImage.processedImageUrl}
@@ -193,13 +193,14 @@ export const ImageComparison = ({
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <div className="flex-1 p-4">
-            <div className="w-full h-full relative">
+          <div className="flex-1 p-4 flex items-center justify-center">
+            <div className="w-full h-full max-h-[calc(100vh-8rem)] relative">
               <ImageCompareSlider
                 beforeImage={selectedImage.previewUrl}
                 afterImage={selectedImage.processedImageUrl}
                 beforeLabel={beforeLabel}
                 afterLabel={afterLabel}
+                className="h-full"
               />
             </div>
           </div>
