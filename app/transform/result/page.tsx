@@ -5,67 +5,29 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTransformStore } from '@/store/transformStore';
 import type { TransformData } from '@/store/transformStore';
-import {
-  getImageDimensions,
-  formatDimensions,
-  type ImageDimensions,
-} from '@/utils/image';
-import ImageCompareSlider from '@/components/ImageCompareSlider';
+import { getImageDimensions, formatDimensions } from '@/utils/image';
 import { useFileUpload } from '@/services/uploadService';
-import { Maximize2, Minimize2 } from 'lucide-react';
-import { Download } from 'lucide-react';
 import JSZip from 'jszip';
-
-type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
-
-interface BaseUploadResult {
-  originalFileName: string;
-  s3Key: string;
-  file: File;
-  width: number;
-  height: number;
-  method: ProcessingMethod;
-}
-
-interface UncropResult extends BaseUploadResult {
-  method: 'uncrop';
-  aspectRatio: '1:1' | '1:2' | '2:1';
-}
-
-interface UpscaleResult extends BaseUploadResult {
-  method: 'upscale';
-  factor: 'x1' | 'x2' | 'x4';
-}
-
-interface SquareResult extends BaseUploadResult {
-  method: 'square';
-  targetRes: '1024' | '1568' | '2048';
-}
-
-interface ImageInfo {
-  dimensions: ImageDimensions;
-  size: string;
-}
-
-interface ProcessedResult {
-  success: boolean;
-  resized_img?: string;
-  message?: string;
-}
-
-interface SpringAPIResponse {
-  success: boolean;
-  results: ProcessedResult[];
-}
-
-interface ProcessingStatus {
-  stage: 'uploading' | 'processing' | 'completed';
-  totalItems: number;
-  currentItemIndex: number;
-  currentFile: string;
-  progress: number;
-}
-
+import {
+  ImageInfo,
+  ProcessingStatusType,
+  SpringAPIResponse,
+  SquareResult,
+  UncropResult,
+  UpscaleResult,
+} from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { ImageComparison } from './ImageComparison';
+import { Button } from '@/components/ui/button';
+import {
+  CheckCircle,
+  Download,
+  FileText,
+  Loader2,
+  XCircle,
+} from 'lucide-react';
 export default function EnhancedImageResultPage() {
   const handleDownloadAll = async () => {
     if (!transformData) return;
@@ -119,13 +81,14 @@ export default function EnhancedImageResultPage() {
     // transformData가 있으면 0번째 이미지 선택, 없으면 null
     transformData && transformData.length > 0 ? transformData[0] : null
   );
-  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
-    stage: 'uploading',
-    totalItems: 0,
-    currentItemIndex: 0,
-    currentFile: '',
-    progress: 0,
-  });
+  const [processingStatus, setProcessingStatus] =
+    useState<ProcessingStatusType>({
+      stage: 'uploading',
+      totalItems: 0,
+      currentItemIndex: 0,
+      currentFile: '',
+      progress: 0,
+    });
   useEffect(() => {
     if (transformData && transformData.length > 0) {
       // 첫 번째 이미지의 완전한 데이터를 찾아서 설정
@@ -375,73 +338,6 @@ export default function EnhancedImageResultPage() {
   const totalCount = processingResults.length;
   const successCount = processingResults.filter((r) => r.success).length;
   const failureCount = totalCount - successCount;
-  // 진행 상태 UI
-  if (processingStatus.stage !== 'completed') {
-    return (
-      <div className="min-h-screen bg-[#1e1e1e] text-white">
-        <div className="max-w-4xl mx-auto p-4">
-          <h2 className="text-xl font-semibold text-center mb-6">
-            {processingStatus.stage === 'uploading'
-              ? '파일 업로드 중...'
-              : '이미지 처리 중...'}
-          </h2>
-
-          {/* 전체 진행률 바 */}
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
-            <div
-              className="bg-blue-500 h-2 rounded-full"
-              style={{ width: `${processingStatus.progress}%` }}
-            />
-          </div>
-
-          {/* 개별 이미지 처리 상태 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {transformData.map((item, index) => {
-              const result = processingResults.find(
-                (res) => res.originalFileName === item.originalFileName
-              );
-
-              return (
-                <div
-                  key={index}
-                  className="flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-lg"
-                >
-                  <div className="relative w-32 h-32 mb-2">
-                    <Image
-                      src={item.previewUrl}
-                      alt={item.originalFileName}
-                      fill
-                      className="object-cover rounded-lg"
-                    />
-                  </div>
-                  <h3 className="text-sm font-medium">
-                    {item.originalFileName}
-                  </h3>
-
-                  {/* 처리 상태 표시 */}
-                  {result ? (
-                    result.success ? (
-                      <p className="text-sm text-green-400 mt-2">
-                        처리 완료 ✅
-                      </p>
-                    ) : (
-                      <p className="text-sm text-red-400 mt-2">
-                        처리 실패 ❌
-                        <br />
-                        {result.message}
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-sm text-gray-400 mt-2">처리 중...</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  }
   // Filter transformData based on search query
   const filteredData = transformData.filter((item) =>
     item.originalFileName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -450,287 +346,167 @@ export default function EnhancedImageResultPage() {
   return (
     <div className="bg-[#1e1e1e] text-white">
       <main>
-        <div className="bg-gradient-to-br from-[#2e2e2e] to-[#262626] rounded-xl p-8 mb-8 mx-auto max-w-4xl shadow-lg border border-gray-800">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-200 mb-1">
-                처리 결과
-              </h2>
-              <p className="text-gray-500 text-sm">
-                이미지 처리가 완료되었습니다
-              </p>
+        <Card className="bg-[#1e1e1e] shadow-2xl border mb-10 max-w-4xl">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-3xl font-bold text-white">
+                Summary
+              </CardTitle>
+              {!loading && (
+                <Button
+                  onClick={handleDownloadAll}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4"
+                >
+                  <Download size={16} />
+                  전체 다운로드 ({successCount})
+                </Button>
+              )}
             </div>
-            {successCount > 0 && (
-              <button
-                onClick={handleDownloadAll}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-blue-500/20"
-              >
-                <Download size={16} />
-                전체 다운로드 ({successCount})
-              </button>
+          </CardHeader>
+
+          <CardContent>
+            {loading && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="bg-gray-900 p-6 rounded-xl flex flex-col items-center gap-3">
+                  <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                  <p className="text-gray-300">처리중...</p>
+                </div>
+              </div>
             )}
-          </div>
 
-          <div className="grid grid-cols-3 gap-6">
-            <div className="bg-[#333333]/50 rounded-lg p-6 backdrop-blur-sm border border-gray-700/50">
-              <div className="text-3xl font-bold mb-1">{totalCount}</div>
-              <div className="text-sm text-gray-400 font-medium">전체 처리</div>
-            </div>
-
-            <div className="bg-emerald-900/10 rounded-lg p-6 backdrop-blur-sm border border-emerald-800/30">
-              <div className="text-3xl font-bold text-emerald-400 mb-1">
-                {successCount}
+            <div className="flex gap-3">
+              <div className="w-40 space-y-3">
+                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
+                  <FileText className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                  <p className="text-lg font-bold text-gray-100">
+                    {totalCount}
+                  </p>
+                  <p className="text-xs text-gray-400">전체</p>
+                </div>
+                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                  <p className="text-lg font-bold text-green-400">
+                    {successCount}
+                  </p>
+                  <p className="text-xs text-gray-400">성공</p>
+                </div>
+                <div className="bg-gray-800/30 rounded-lg p-3 text-center">
+                  <XCircle className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                  <p className="text-lg font-bold text-red-400">
+                    {failureCount}
+                  </p>
+                  <p className="text-xs text-gray-400">실패</p>
+                </div>
               </div>
-              <div className="text-sm text-gray-400 font-medium">성공</div>
-            </div>
 
-            <div className="bg-red-900/10 rounded-lg p-6 backdrop-blur-sm border border-red-800/30">
-              <div className="text-3xl font-bold text-red-400 mb-1">
-                {failureCount}
+              <div className="grow space-y-3">
+                <ScrollArea className="h-32 rounded-lg border border-green-800/30 bg-black/20 ">
+                  {processingResults
+                    .filter((result) => result.success)
+                    .map((result, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center  mb-2 rounded-lg bg-green-900/20 border border-green-600/30"
+                      >
+                        <span className="text-sm text-gray-200 truncate">
+                          {result.originalFileName}
+                        </span>
+                        <Badge className="bg-green-600/20 text-green-400">
+                          성공
+                        </Badge>
+                      </div>
+                    ))}
+                </ScrollArea>
+
+                <ScrollArea className="h-32 rounded-lg border border-red-800/30 bg-black/20">
+                  {processingResults
+                    .filter((result) => !result.success)
+                    .map((result, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center mb-2 rounded-lg bg-red-900/20 border border-red-600/30"
+                      >
+                        <span className="text-sm text-gray-200 truncate">
+                          {result.originalFileName}
+                        </span>
+                        <Badge className="bg-red-600/20 text-red-400">
+                          실패
+                        </Badge>
+                      </div>
+                    ))}
+                </ScrollArea>
               </div>
-              <div className="text-sm text-gray-400 font-medium">실패</div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <div className="flex items-center mb-4">
           <h1 className="text-3xl font-semibold">Image Enhancements</h1>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <svg
-              className="animate-spin h-10 w-10 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              ></path>
-            </svg>
-          </div>
+        {/* Selected Image Details */}
+        {selectedImage ? (
+          <ImageComparison
+            selectedImage={selectedImage}
+            imageInfos={imageInfos}
+            getProcessingText={getProcessingText}
+            formatDimensions={formatDimensions}
+            isZoomed={isZoomed}
+            setIsZoomed={setIsZoomed}
+          />
         ) : (
-          <>
-            {/* Selected Image Details */}
-            {selectedImage ? (
-              <div className="mb-8">
-                {/* Before and After Images with Slider */}
-                <div className="flex w-full justify-center mb-8 gap-1">
-                  {/* Original Image */}
-                  <div className="flex flex-col p-4 flex-1 max-w-xl">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-200">
-                      Original
-                    </h2>
-                    <div className="rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e] w-full">
-                      <div className="relative w-full h-96">
-                        <Image
-                          src={selectedImage.previewUrl}
-                          alt="원본 이미지"
-                          fill
-                          priority
-                          className="object-contain rounded-xl"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 space-y-1">
-                      <h3 className="text-sm font-medium text-gray-300 tracking-tight">
-                        {selectedImage.originalFileName}
-                      </h3>
-                      {imageInfos[
-                        `original_${selectedImage.originalFileName}`
-                      ] && (
-                        <>
-                          <p className="text-xs text-gray-500 tracking-tight">
-                            {formatDimensions(
-                              imageInfos[
-                                `original_${selectedImage.originalFileName}`
-                              ].dimensions
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-400 tracking-tight">
-                            {
-                              imageInfos[
-                                `original_${selectedImage.originalFileName}`
-                              ].size
-                            }
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
+          <div className="mb-8 text-center text-gray-500">
+            선택된 이미지가 없습니다.
+          </div>
+        )}
 
-                  {/* Enhanced Image */}
-                  <div className="flex flex-col p-4 flex-1 max-w-xl">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-200">
-                      Result
-                    </h2>
-                    <div className="rounded-xl overflow-hidden bg-white dark:bg-[#1e1e1e] w-full">
-                      {selectedImage.processedImageUrl ? (
-                        <div className="relative w-full h-96">
-                          <Image
-                            src={selectedImage.processedImageUrl}
-                            alt="처리된 이미지"
-                            fill
-                            priority
-                            className="object-contain rounded-xl"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-96 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                          이미지 처리 중...
-                        </div>
-                      )}
-                    </div>
+        {/* Details Button */}
+        <div className="w-[40%] text-center font-bold bg-[#2e2e2e] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
+          Queue
+        </div>
 
-                    <div className="mt-3 space-y-1">
-                      <h3 className="text-sm font-medium text-gray-300 tracking-tight">
-                        {getProcessingText(selectedImage)}
-                      </h3>
-                      {imageInfos[
-                        `processed_${selectedImage.originalFileName}`
-                      ] && (
-                        <>
-                          <p className="text-xs text-gray-500 tracking-tight">
-                            {formatDimensions(
-                              imageInfos[
-                                `processed_${selectedImage.originalFileName}`
-                              ].dimensions
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-400 tracking-tight">
-                            {
-                              imageInfos[
-                                `processed_${selectedImage.originalFileName}`
-                              ].size
-                            }
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Image Compare Slider */}
-                {selectedImage.processedImageUrl && (
-                  <div className="mt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold text-gray-200">
-                        Side-by-side Comparison
-                      </h2>
-                      <button
-                        onClick={() => setIsZoomed(!isZoomed)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
-                      >
-                        {isZoomed ? (
-                          <>
-                            <Minimize2 className="w-4 h-4" />
-                            <span>Minimize</span>
-                          </>
-                        ) : (
-                          <>
-                            <Maximize2 className="w-4 h-4" />
-                            <span>Maximize</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div
-                      className={`transition-all duration-300 ${
-                        isZoomed ? 'max-w-full' : 'max-w-[700px]'
-                      } m-auto`}
-                    >
-                      <ImageCompareSlider
-                        beforeImage={selectedImage.previewUrl}
-                        afterImage={selectedImage.processedImageUrl}
-                        beforeLabel={`Original (${
-                          imageInfos[
-                            `original_${selectedImage.originalFileName}`
-                          ]?.dimensions.width
-                        }x${
-                          imageInfos[
-                            `original_${selectedImage.originalFileName}`
-                          ]?.dimensions.height
-                        })`}
-                        afterLabel={`${getProcessingText(selectedImage)} (${
-                          imageInfos[
-                            `processed_${selectedImage.originalFileName}`
-                          ]?.dimensions.width
-                        }x${
-                          imageInfos[
-                            `processed_${selectedImage.originalFileName}`
-                          ]?.dimensions.height
-                        })`}
-                      />
-                    </div>
+        {/* Image Grid */}
+        <div className="grid grid-cols-3 lg:grid-cols-5 gap-4 max-w-full mx-auto p-4">
+          {filteredData.map((item: TransformData, index) => (
+            <div
+              key={index}
+              className={`space-y-1.5 cursor-pointer border-2 ${
+                selectedImage?.originalFileName === item.originalFileName
+                  ? 'border-green-500'
+                  : 'border-transparent'
+              } rounded-lg p-2`}
+              onClick={() => setSelectedImage(item)}
+            >
+              <div className="relative aspect-[3/4] w-full">
+                {item.processedImageUrl ? (
+                  <Image
+                    src={item.processedImageUrl}
+                    alt={`Image ${index + 1}`}
+                    fill
+                    sizes="(max-width: 144px) 100vw, 144px"
+                    className="object-cover rounded-lg"
+                    priority
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#2E2E2E] rounded-lg flex items-center justify-center">
+                    <span className="text-gray-500 text-xs">No Image</span>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="mb-8 text-center text-gray-500">
-                선택된 이미지가 없습니다.
+              <div className="text-xs truncate px-1">
+                {item.originalFileName}
               </div>
-            )}
-
-            {/* Details Button */}
-            <div className="w-[40%] text-center font-bold bg-[#2e2e2e] text-white mt-10 p-3 mx-8 rounded-lg mb-4">
-              Queue
+              <button
+                className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1 rounded-lg text-xs transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                Next
+              </button>
             </div>
-
-            {/* Image Grid */}
-            <div className="grid grid-cols-3 lg:grid-cols-5 gap-4 max-w-full mx-auto p-4">
-              {filteredData.map((item: TransformData, index) => (
-                <div
-                  key={index}
-                  className={`space-y-1.5 cursor-pointer border-2 ${
-                    selectedImage?.originalFileName === item.originalFileName
-                      ? 'border-green-500'
-                      : 'border-transparent'
-                  } rounded-lg p-2`}
-                  onClick={() => setSelectedImage(item)}
-                >
-                  <div className="relative aspect-[3/4] w-full">
-                    {item.processedImageUrl ? (
-                      <Image
-                        src={item.processedImageUrl}
-                        alt={`Image ${index + 1}`}
-                        fill
-                        sizes="(max-width: 144px) 100vw, 144px"
-                        className="object-cover rounded-lg"
-                        priority
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#2E2E2E] rounded-lg flex items-center justify-center">
-                        <span className="text-gray-500 text-xs">No Image</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-xs truncate px-1">
-                    {item.originalFileName}
-                  </div>
-                  <button
-                    className="w-full bg-[#1E1E1E] hover:bg-[#2E2E2E] text-white py-1 rounded-lg text-xs transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
-                    Next
-                  </button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+          ))}
+        </div>
       </main>
     </div>
   );

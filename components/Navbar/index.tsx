@@ -96,7 +96,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-      <div className="h-16 md:h-0" />
     </>
   );
 }

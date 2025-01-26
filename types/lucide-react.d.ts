@@ -48,6 +48,7 @@ declare module 'lucide-react' {
   export const LogOut: React.FC<IconProps>;
   export const BarChart: React.FC<IconProps>;
   export const ChevronUp: React.FC<IconProps>;
+  export const FileText: React.FC<IconProps>;
 
   // 추가적인 아이콘이 필요하면 여기에 선언하세요.
 }

@@ -1,11 +1,16 @@
+import { APIResponse } from '@/types';
 import { NextResponse } from 'next/server';
 
 const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
 
-async function sendToSpringApi(formData: FormData, url: string) {
+// sendToSpringApi 함수 수정
+async function sendToSpringApi<T>(
+  formData: FormData,
+  url: string
+): Promise<APIResponse<T>> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    const timeoutId = setTimeout(() => controller.abort(), 4000); // 10초 타임아웃
 
     const response = await fetch(url, {
       method: 'POST',
@@ -22,13 +27,27 @@ async function sendToSpringApi(formData: FormData, url: string) {
       throw new Error(`Failed to send data to ${url}: ${errorData}`);
     }
 
-    return response.json();
+    // 응답 값을 먼저 unknown으로 변환 후 APIResponse<T>로 캐스팅
+    const responseData = (await response.json()) as unknown;
+
+    // 타입 검사: responseData가 APIResponse<T>의 형태인지 확인
+    if (
+      typeof responseData === 'object' &&
+      responseData !== null &&
+      'success' in responseData &&
+      typeof (responseData as APIResponse<T>).success === 'boolean'
+    ) {
+      return responseData as APIResponse<T>;
+    } else {
+      throw new Error(`Invalid response format from ${url}`);
+    }
   } catch (error) {
     console.error(`Error sending to ${url}:`, error);
     return {
-      success: false,
+      code: 1,
       message: error instanceof Error ? error.message : 'Unknown error',
-    };
+      success: false,
+    } as APIResponse<T>;
   }
 }
 
@@ -90,13 +109,13 @@ export async function POST(request: Request) {
 
     const requests = [
       ...uncropData.map((data) =>
-        sendToSpringApi(data, `${SPRING_API_BASE}/uncrop`)
+        sendToSpringApi<string>(data, `${SPRING_API_BASE}/uncrop`)
       ),
       ...upscaleData.map((data) =>
-        sendToSpringApi(data, `${SPRING_API_BASE}/upscale`)
+        sendToSpringApi<string>(data, `${SPRING_API_BASE}/upscale`)
       ),
       ...squareData.map((data) =>
-        sendToSpringApi(data, `${SPRING_API_BASE}/square`)
+        sendToSpringApi<string>(data, `${SPRING_API_BASE}/square`)
       ),
     ];
 
@@ -105,7 +124,7 @@ export async function POST(request: Request) {
     // 성공한 요청만 필터링
     const successfulResults = results
       .filter(
-        (result): result is PromiseFulfilledResult<unknown> =>
+        (result): result is PromiseFulfilledResult<APIResponse<string>> =>
           result.status === 'fulfilled'
       )
       .map((result) => result.value);
