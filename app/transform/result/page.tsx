@@ -372,75 +372,68 @@ export default function EnhancedImageResultPage() {
     return matchesSearch && isProcessingSuccess && hasProcessedImage;
   });
   return (
-    <div className="bg-black text-white">
+    <div className="bg-white dark:bg-black text-gray-900 dark:text-white">
       <main>
-        {/* Summary Card */}
-        <Card className="bg-black shadow-lg border-gray-800 max-h-48 mb-4">
+        <Card className="bg-white dark:bg-black shadow-lg border-gray-200 dark:border-gray-800 max-h-48 mb-4">
           <CardHeader className="py-2">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-white">Summary</h3>
-              {!loading && (
-                <Button
-                  onClick={handleDownloadAll}
-                  className="bg-black hover:bg-gray-800 text-white h-8 px-2 text-sm"
-                >
-                  <Download size={14} className="mr-1" />
-                  Success ({successCount})
-                </Button>
-              )}
+              <h3 className="text-gray-900 dark:text-white text-lg font-semibold">
+                Summary
+              </h3>
             </div>
           </CardHeader>
 
           <CardContent className="py-2">
             {loading && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div className="bg-gray-900 p-4 rounded-lg flex items-center gap-2">
+              <div className="fixed inset-0 bg-gray-500/50 dark:bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-lg flex items-center gap-2">
                   <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
-                  <p className="text-gray-300 text-sm">처리중...</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    처리중...
+                  </p>
                 </div>
               </div>
             )}
-
             <div className="flex gap-2">
               <div className="flex gap-2">
-                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
-                  <FileText className="w-4 h-4 text-gray-400 mr-1" />
-                  <p className="text-sm font-bold text-gray-100">
+                <div className="bg-gray-100 dark:bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                  <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-1" />
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
                     전체 ({totalCount})
                   </p>
                 </div>
-                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                <div className="bg-gray-100 dark:bg-gray-800/30 rounded px-3 py-1 flex items-center">
                   <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                  <p className="text-sm font-bold text-green-400">
+                  <p className="text-sm font-bold text-green-600 dark:text-green-400">
                     성공({successCount})
                   </p>
                 </div>
-                <div className="bg-gray-800/30 rounded px-3 py-1 flex items-center">
+                <div className="bg-gray-100 dark:bg-gray-800/30 rounded px-3 py-1 flex items-center">
                   <XCircle className="w-4 h-4 text-red-500 mr-1" />
-                  <p className="text-sm font-bold text-red-400">
+                  <p className="text-sm font-bold text-red-600 dark:text-red-400">
                     실패({failureCount})
                   </p>
                 </div>
               </div>
 
-              <ScrollArea className="h-24 grow rounded border border-gray-800 bg-black/20">
+              <ScrollArea className="h-24 grow rounded border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20">
                 {processingResults.map((result, index) => (
                   <div
                     key={index}
                     className={`flex justify-between items-center mb-1 px-2 py-1 rounded ${
                       result.success
-                        ? 'bg-green-900/20 border border-green-600/30'
-                        : 'bg-red-900/20 border border-red-600/30'
+                        ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-600/30'
+                        : 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-600/30'
                     }`}
                   >
-                    <span className="text-xs text-gray-200 truncate">
+                    <span className="text-xs text-gray-800 dark:text-gray-200 truncate">
                       {result.originalFileName}
                     </span>
                     <Badge
                       className={
                         result.success
-                          ? 'bg-green-600/20 text-green-400 text-xs'
-                          : 'bg-red-600/20 text-red-400 text-xs'
+                          ? 'bg-green-100 dark:bg-green-600/20 text-green-600 dark:text-green-400 text-xs'
+                          : 'bg-red-100 dark:bg-red-600/20 text-red-600 dark:text-red-400 text-xs'
                       }
                     >
                       {result.success ? '성공' : '실패'}
@@ -449,12 +442,21 @@ export default function EnhancedImageResultPage() {
                 ))}
               </ScrollArea>
             </div>
+            {!loading && (
+              <Button
+                onClick={handleDownloadAll}
+                className="bg-indigo-500 dark:bg-white hover:bg-indigo-600 dark:hover:bg-indigo-600 text-white dark:text-black hover:text-white h-8 px-2 text-sm m-auto"
+              >
+                <Download size={14} className="mr-1" />
+                Success ({successCount})
+              </Button>
+            )}
           </CardContent>
         </Card>
-        {/*queue섹션*/}
-        <Card className="bg-black border-gray-800 mt-4">
+
+        <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800 mt-4">
           <CardHeader>
-            <h4 className="text-lg font-semibold">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
               Queue ({filteredData.length})
             </h4>
           </CardHeader>
@@ -480,7 +482,7 @@ export default function EnhancedImageResultPage() {
                         priority
                       />
                     </div>
-                    <div className="text-[10px] text-gray-400 truncate mt-1">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-1">
                       {item.originalFileName}
                     </div>
                   </div>
@@ -490,10 +492,9 @@ export default function EnhancedImageResultPage() {
           </CardContent>
         </Card>
 
-        {/* Image Enhancements Card */}
-        <Card className="bg-black shadow-lg border-gray-800">
+        <Card className="bg-white dark:bg-black shadow-lg border-gray-200 dark:border-gray-800">
           <CardHeader className="py-2">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Image Enhancements
             </h3>
           </CardHeader>

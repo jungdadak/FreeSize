@@ -157,10 +157,10 @@ export default function ImageCompareSlider({
 
         {/* 라벨 */}
         <div className="flex justify-between w-full mt-2 px-2">
-          <div className="bg-[#1E1E1E]/50 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
+          <div className="bg-[#1E1E1E]/10 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
             {beforeLabel}
           </div>
-          <div className="bg-[#1E1E1E]/50 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
+          <div className="bg-[#1E1E1E]/10 dark:text-white text-black text-sm px-3 py-1 rounded-md shadow-md">
             {afterLabel}
           </div>
         </div>

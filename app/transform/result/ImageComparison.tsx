@@ -54,12 +54,12 @@ export const ImageComparison = ({
     <>
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row w-full justify-center gap-4">
-          <Card className="flex-1 bg-black border-gray-800">
+          <Card className="flex-1 bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardContent className="p-4">
-              <h2 className="text-lg font-semibold mb-4 text-gray-200">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
                 Original
               </h2>
-              <div className="rounded-xl overflow-hidden bg-gray-900 w-full">
+              <div className="rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
                 <div className="relative w-full aspect-square md:aspect-auto md:h-96">
                   <Image
                     src={selectedImage.previewUrl}
@@ -71,18 +71,18 @@ export const ImageComparison = ({
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <h3 className="text-sm font-medium text-gray-300">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {selectedImage.originalFileName}
                 </h3>
                 {imageInfos[`original_${selectedImage.originalFileName}`] && (
                   <>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-600 dark:text-gray-500">
                       {formatDimensions(
                         imageInfos[`original_${selectedImage.originalFileName}`]
                           .dimensions
                       )}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {
                         imageInfos[`original_${selectedImage.originalFileName}`]
                           .size
@@ -94,12 +94,12 @@ export const ImageComparison = ({
             </CardContent>
           </Card>
 
-          <Card className="flex-1 bg-black border-gray-800">
+          <Card className="flex-1 bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardContent className="p-4">
-              <h2 className="text-lg font-semibold mb-4 text-gray-200">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
                 Result
               </h2>
-              <div className="rounded-xl overflow-hidden bg-gray-900 w-full">
+              <div className="rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
                 <div className="relative w-full aspect-square md:aspect-auto md:h-96">
                   <Image
                     src={selectedImage.processedImageUrl}
@@ -111,19 +111,19 @@ export const ImageComparison = ({
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <h3 className="text-sm font-medium text-gray-300">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {getProcessingText(selectedImage)}
                 </h3>
                 {imageInfos[`processed_${selectedImage.originalFileName}`] && (
                   <>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-600 dark:text-gray-500">
                       {formatDimensions(
                         imageInfos[
                           `processed_${selectedImage.originalFileName}`
                         ].dimensions
                       )}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {
                         imageInfos[
                           `processed_${selectedImage.originalFileName}`
@@ -137,18 +137,18 @@ export const ImageComparison = ({
           </Card>
         </div>
 
-        <Card className="bg-black border-gray-800 max-w-3xl">
+        <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800 max-w-3xl">
           <CardContent>
             <div className="p-4 space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-200">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                   Side-by-side Comparison
                 </h2>
                 <Button
                   onClick={() => setIsZoomed(!isZoomed)}
                   variant="outline"
                   size="sm"
-                  className="bg-gray-900 hover:bg-gray-800 border-gray-700"
+                  className="bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700"
                 >
                   {isZoomed ? (
                     <>
@@ -164,7 +164,7 @@ export const ImageComparison = ({
                 </Button>
               </div>
 
-              <div className="relative max-w-2xl  rounded-lg">
+              <div className="relative max-w-2xl rounded-lg">
                 <ImageCompareSlider
                   beforeImage={selectedImage.previewUrl}
                   afterImage={selectedImage.processedImageUrl}
@@ -179,16 +179,16 @@ export const ImageComparison = ({
 
       {/* Maximized View */}
       {isZoomed && (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          <div className="flex justify-between items-center p-4 border-b border-gray-800">
-            <h2 className="text-lg font-semibold text-gray-200">
+        <div className="fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
               Comparison View
             </h2>
             <Button
               onClick={() => setIsZoomed(false)}
               variant="outline"
               size="icon"
-              className="bg-gray-900 hover:bg-gray-800 border-gray-700"
+              className="bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700"
             >
               <X className="w-4 h-4" />
             </Button>

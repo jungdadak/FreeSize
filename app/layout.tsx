@@ -96,7 +96,7 @@ export default async function RootLayout({
           <div className="flex flex-col min-h-screen">
             <ClientMaintenanceBanner />
             <Navbar />
-            <main className="flex-grow lg:pt-16 pb-16">
+            <main className="flex-grow pb-16">
               <div className="container mx-auto">
                 {children}
                 <ToastContainer />
