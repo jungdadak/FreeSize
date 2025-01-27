@@ -144,7 +144,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
           }
         `}
       >
-        <nav className="h-full flex flex-col items-center px-6">
+        <nav className="h-full mt-10 flex flex-col items-center px-6">
           <ul className="flex flex-col items-center gap-8 mb-12">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -163,10 +163,15 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems }) => {
                 </Link>
               </li>
             ))}
+            <li>
+              <div
+                className="flex justify-center items-center"
+                onClick={() => setIsOpen(false)}
+              >
+                {session ? <LogoutButton /> : <SignInButton />}
+              </div>
+            </li>
           </ul>
-          <div className="flex justify-center items-center">
-            {session ? <LogoutButton /> : <SignInButton />}
-          </div>
 
           <button
             onClick={() => setIsOpen(false)}
