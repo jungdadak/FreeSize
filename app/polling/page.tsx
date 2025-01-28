@@ -21,7 +21,6 @@ export default function PollingPreviewPage() {
     totalFiles,
     totalSize,
     uploadStatus,
-
     stage,
     handleMethodToggle,
     handleAspectRatioChange,
@@ -31,7 +30,6 @@ export default function PollingPreviewPage() {
     handleCancel,
     handleProcess,
   } = useFileProcessing();
-
   return (
     <div className="min-h-screen py-12 transition-colors duration-300 bg-white text-gray-900 dark:bg-[#141414]">
       {' '}

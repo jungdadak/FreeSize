@@ -165,7 +165,7 @@ export function useFileProcessing() {
     handleMethodToggle,
     handleAspectRatioChange,
     handleUpscaleFactorChange,
-    handleSquareTargetResChange, // 새로운 핸들러 반환
+    handleSquareTargetResChange,
     handleRemoveFile,
     handleCancel,
     handleProcess,

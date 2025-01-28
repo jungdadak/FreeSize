@@ -1,10 +1,11 @@
 import React from 'react';
 import Image from 'next/image';
 import { Maximize2, Minimize2, X } from 'lucide-react';
-import ImageCompareSlider from '@/components/ImageCompareSlider';
 import { TransformData } from '@/store/transformStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import ImageCompareSlider from './ImageCompareSlider';
+import { Dispatch, SetStateAction } from 'react'; // 추가
 
 interface ImageInfo {
   dimensions: {
@@ -20,17 +21,17 @@ interface ImageComparisonProps {
   getProcessingText: (item: TransformData) => string;
   formatDimensions: (dimensions: { width: number; height: number }) => string;
   isZoomed: boolean;
-  setIsZoomed: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsZoomed: Dispatch<SetStateAction<boolean>>; // 수정
 }
 
-export const ImageComparison = ({
+export function ImageComparison({
   selectedImage,
   imageInfos,
   getProcessingText,
   formatDimensions,
   isZoomed,
   setIsZoomed,
-}: ImageComparisonProps) => {
+}: ImageComparisonProps) {
   if (!selectedImage.previewUrl || !selectedImage.processedImageUrl) {
     return null;
   }
@@ -49,6 +50,8 @@ export const ImageComparison = ({
         processedDimensions.height
       })`
     : getProcessingText(selectedImage);
+
+  const isUpscale = selectedImage.processingOptions?.method === 'upscale';
 
   return (
     <>
@@ -137,48 +140,49 @@ export const ImageComparison = ({
           </Card>
         </div>
 
-        <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800 max-w-3xl">
-          <CardContent>
-            <div className="p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  Side-by-side Comparison
-                </h2>
-                <Button
-                  onClick={() => setIsZoomed(!isZoomed)}
-                  variant="outline"
-                  size="sm"
-                  className="bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700"
-                >
-                  {isZoomed ? (
-                    <>
-                      <Minimize2 className="w-4 h-4 mr-2" />
-                      <span className="hidden sm:inline">Close</span>
-                    </>
-                  ) : (
-                    <>
-                      <Maximize2 className="w-4 h-4 mr-2" />
-                      <span className="hidden sm:inline">Maximize</span>
-                    </>
-                  )}
-                </Button>
-              </div>
+        {isUpscale && (
+          <Card className="bg-white dark:bg-black border-gray-200 m-auto dark:border-gray-800 max-w-3xl">
+            <CardContent>
+              <div className="p-4 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    Side-by-side Comparison
+                  </h2>
+                  <Button
+                    onClick={() => setIsZoomed(!isZoomed)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700"
+                  >
+                    {isZoomed ? (
+                      <>
+                        <Minimize2 className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">Close</span>
+                      </>
+                    ) : (
+                      <>
+                        <Maximize2 className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">Maximize</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
 
-              <div className="relative max-w-2xl rounded-lg">
-                <ImageCompareSlider
-                  beforeImage={selectedImage.previewUrl}
-                  afterImage={selectedImage.processedImageUrl}
-                  beforeLabel={beforeLabel}
-                  afterLabel={afterLabel}
-                />
+                <div className="relative max-w-2xl rounded-lg">
+                  <ImageCompareSlider
+                    beforeImage={selectedImage.previewUrl}
+                    afterImage={selectedImage.processedImageUrl}
+                    beforeLabel={beforeLabel}
+                    afterLabel={afterLabel}
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Maximized View */}
-      {isZoomed && (
+      {isUpscale && isZoomed && (
         <div className="fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
           <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
@@ -208,4 +212,4 @@ export const ImageComparison = ({
       )}
     </>
   );
-};
+}
