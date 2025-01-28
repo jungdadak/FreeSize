@@ -13,6 +13,7 @@ import {
   ImageViewer,
 } from '@/components/Transform';
 import { formatDimensions } from '@/utils/image';
+import { useResetStoresOnUnmount } from '@/hooks/resetAllStores';
 
 export default function TransformPage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function TransformPage() {
     useImageProcessing(transformData);
 
   const { imageInfos } = useImageInfo(transformData, processingStatus);
-
+  useResetStoresOnUnmount();
   useEffect(() => {
     if (!transformData) {
       router.push('/');
