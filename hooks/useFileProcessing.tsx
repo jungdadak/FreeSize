@@ -16,6 +16,7 @@ export function useFileProcessing() {
     setProcessingOption,
     updateFile,
     removeFile,
+    addFile, // 노출시킬 addFile 메소드
   } = useFileStore();
 
   // 파일 갯수와 크기 계산
@@ -30,10 +31,8 @@ export function useFileProcessing() {
   );
 
   useEffect(() => {
-    if (files.length === 0) {
-      router.push('/');
-      return;
-    }
+    // 파일이 없을 때 리다이렉트하는 로직 제거
+    // 대신 이미지 차원 계산 로직만 유지
     files.forEach(async (fileItem, index) => {
       if (!fileItem.dimensions) {
         try {
@@ -46,7 +45,7 @@ export function useFileProcessing() {
         }
       }
     });
-  }, [files, router, updateFile]);
+  }, [files, updateFile]);
 
   // 메서드 토글 핸들러
   const handleMethodToggle = (fileIndex: number, methodId: string) => {
@@ -62,7 +61,6 @@ export function useFileProcessing() {
       } else if (methodId === 'upscale') {
         setProcessingOption(fileIndex, { method: 'upscale', factor: 'x1' });
       } else if (methodId === 'square') {
-        // 'square' 선택 시 targetRes 초기 설정
         setProcessingOption(fileIndex, { method: 'square', targetRes: '1024' });
       }
     }
@@ -89,7 +87,8 @@ export function useFileProcessing() {
       setProcessingOption(fileIndex, { ...currentOption, factor });
     }
   };
-  // 새로운 Square 타겟 해상도 변경 핸들러
+
+  // Square 타겟 해상도 변경 핸들러
   const handleSquareTargetResChange = (
     fileIndex: number,
     targetRes: '1024' | '1568' | '2048'
@@ -122,8 +121,9 @@ export function useFileProcessing() {
       return;
     }
 
-    const hasProcessingOptions =
-      files.length > 0 && files.every((file) => file.processingOption !== null);
+    const hasProcessingOptions = files.every(
+      (file) => file.processingOption !== null
+    );
 
     if (!hasProcessingOptions) {
       setUploadStatus({
@@ -160,6 +160,7 @@ export function useFileProcessing() {
     totalFiles,
     totalSize,
     uploadStatus,
+    addFile, // addFile 메소드 노출
 
     stage,
     handleMethodToggle,
