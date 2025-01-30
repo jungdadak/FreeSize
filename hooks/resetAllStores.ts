@@ -1,12 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFileStore } from '@/store/fileStore';
 import { useTransformStore } from '@/store/transformStore';
 import { useUploadStore } from '@/store/uploadStore';
 
 export const useResetStoresOnUnmount = () => {
+  const isInitialMount = useRef(true);
+
   useEffect(() => {
-    // 언마운트될 때만 실행되는 클린업 함수 반환
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     return () => {
+      // 개발 환경의 strict mode로 인한 리마운트시에는 리셋하지 않음
+      if (process.env.NODE_ENV === 'development') {
+        return;
+      }
       useFileStore.getState().resetFileStore();
       useTransformStore.getState().resetTransformData();
       useUploadStore.getState().reset();
