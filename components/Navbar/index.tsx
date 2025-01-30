@@ -28,74 +28,77 @@ const getNavItems = (isAdmin: boolean) => [
     : []),
 ];
 
-export default function Navbar() {
+type NavbarProps = {
+  className?: string; // className을 선택적 prop으로 정의
+};
+
+export default function Navbar({ className }: NavbarProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
   const navItemsWithAdmin = getNavItems(isAdmin);
 
   return (
-    <>
-      <header
-        className={`
-          fixed top-0 inset-x-0 h-16 z-50
-          ${
-            isAdmin
-              ? 'bg-gradient-to-r from-blue-900 to-purple-900 text-white'
-              : 'bg-white dark:bg-[#2A2E2D]'
-          }
-          transition-colors duration-200
-        `}
-      >
-        <div className="container mx-auto h-full pl-2 pr-6 flex items-center justify-between">
-          <div className="flex-shrink-0">
-            <Logo />
-          </div>
+    <header
+      className={`
+        fixed top-0 inset-x-0 h-16 z-50
+        ${
+          isAdmin
+            ? 'bg-gradient-to-r from-blue-900 to-purple-900 text-white'
+            : 'bg-white dark:bg-[#2A2E2D]'
+        }
+        transition-colors duration-200
+        ${className}  // 전달받은 className 적용
+      `}
+    >
+      <div className="container mx-auto h-full pl-2 pr-6 flex items-center justify-between">
+        <div className="flex-shrink-0">
+          <Logo />
+        </div>
 
-          <nav className="hidden md:flex items-center gap-8">
-            <ul className="flex items-center gap-4">
-              {navItemsWithAdmin.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-2 transition-colors duration-200
+        <nav className="hidden md:flex items-center gap-8">
+          <ul className="flex items-center gap-4">
+            {navItemsWithAdmin.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-2 transition-colors duration-200
                       ${
                         item.href === '/admin'
                           ? 'text-yellow-400 hover:text-yellow-300'
                           : 'hover:text-blue-500'
                       }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            {session?.user ? (
-              <>
-                <span
-                  className={`mr-4 ${
-                    isAdmin
-                      ? 'text-yellow-400'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}
                 >
-                  {isAdmin ? '👑 ' : ''}
-                  {session.user.name || session.user.email?.split('@')[0]}
-                </span>
-                <LogoutButton />
-              </>
-            ) : (
-              <SignInButton />
-            )}
-            <DarkModeToggler />
-          </nav>
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {session?.user ? (
+            <>
+              <span
+                className={`mr-4 ${
+                  isAdmin
+                    ? 'text-yellow-400'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {isAdmin ? '👑 ' : ''}
+                {session.user.name || session.user.email?.split('@')[0]}
+              </span>
+              <LogoutButton />
+            </>
+          ) : (
+            <SignInButton />
+          )}
+          <DarkModeToggler />
+        </nav>
 
-          <div className="flex md:hidden items-center gap-4">
-            <DarkModeToggler />
-            <MobileNav navItems={navItemsWithAdmin} />
-          </div>
+        <div className="flex md:hidden items-center gap-4">
+          <DarkModeToggler />
+          <MobileNav navItems={navItemsWithAdmin} />
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   );
 }
