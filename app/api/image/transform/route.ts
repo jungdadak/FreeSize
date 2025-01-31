@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
       const newFormData = new FormData();
       newFormData.append('file', file);
-      newFormData.append('s3Key', metadata.s3Key);
+      newFormData.append('taskId', metadata.s3Key);
       newFormData.append('originalFileName', metadata.originalFileName);
       newFormData.append('width', metadata.width.toString());
       newFormData.append('height', metadata.height.toString());

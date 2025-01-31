@@ -16,7 +16,7 @@ export function ImageQueue({
           Queue ({filteredData.length})
         </h4>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="pl-2 pb-2">
         <ScrollArea className="h-32 w-full">
           <div className="flex p-2 gap-2">
             {filteredData.map((item, index) => (
