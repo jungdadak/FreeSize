@@ -2,7 +2,82 @@ export * from './upload';
 export * from './store';
 export * from './transform';
 
-type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
+//types/transform.ts
+export type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
+export type ProcessingStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed';
+
+export interface ProcessingStatusType {
+  stage: 'initial' | 'processing' | 'completed';
+  progress: number;
+  totalItems: number;
+  currentItemIndex: number;
+  currentFile: string;
+}
+
+// Spring API 응답 타입
+export interface SpringApiResponse {
+  code: number;
+  message: string;
+  url: string;
+}
+
+// 클라이언트에 전달할 응답 타입
+export interface ImageProcessingResponse {
+  success: boolean;
+  message: string;
+  processId: string;
+}
+
+export interface ProcessingResult {
+  originalFileName: string;
+  success: boolean;
+  message: string;
+  imageUrl?: string; // 안전한 URL
+}
+
+export const POLLING_INTERVAL = 3000;
+export const MAX_RETRIES = 5;
+
+export interface ImageInfo {
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  size: string;
+}
+
+export interface ProcessingStatusType {
+  stage: 'initial' | 'processing' | 'completed';
+  progress: number;
+  totalItems: number;
+  currentItemIndex: number;
+  currentFile: string;
+}
+
+export interface ImageInfo {
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  size: string;
+}
+
+// API 관련 타입들
+export interface SpringApiResponse {
+  code: number;
+  message: string;
+  url: string;
+}
+
+export interface ProcessingResult {
+  originalFileName: string;
+  success: boolean;
+  message: string;
+}
 
 export interface BaseUploadResult {
   originalFileName: string;
@@ -42,12 +117,4 @@ export interface ProcessedResult {
 export interface SpringAPIResponse {
   success: boolean;
   results: ProcessedResult[];
-}
-
-export interface ProcessingStatusType {
-  stage: 'uploading' | 'processing' | 'completed';
-  totalItems: number;
-  currentItemIndex: number;
-  currentFile: string;
-  progress: number;
 }

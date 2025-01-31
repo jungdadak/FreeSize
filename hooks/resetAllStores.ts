@@ -18,7 +18,7 @@ export const useResetStoresOnUnmount = () => {
         return;
       }
       useFileStore.getState().resetFileStore();
-      useTransformStore.getState().resetTransformData();
+      useTransformStore.getState().reset();
       useUploadStore.getState().reset();
     };
   }, []);

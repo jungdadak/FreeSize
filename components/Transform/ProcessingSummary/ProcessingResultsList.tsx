@@ -1,14 +1,17 @@
+// components/Transform/ProcessingSummary/ProcessingResultsList.tsx
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { ProcessingResult } from '../types';
+// 프로젝트 구조에 맞게 경로 수정!
+import { ProcessingResult } from '@/types/transform';
 
-export function ProcessingResultsList({
-  results,
-}: {
+interface ProcessingResultsListProps {
   results: ProcessingResult[];
-}) {
+}
+
+export function ProcessingResultsList({ results }: ProcessingResultsListProps) {
   return (
-    <ScrollArea className="h-24 grow rounded border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20">
+    <ScrollArea className="h-24 grow rounded border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/20 p-2">
       {results.map((result, index) => (
         <div
           key={index}

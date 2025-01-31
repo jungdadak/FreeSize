@@ -178,3 +178,23 @@ input[type='range']::-ms-track {
 .animate-fade-out {
   animation: fadeOut 0.3s ease-out forwards;
 }
+@keyframes stripe-slide {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.stripes-bg {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.2) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  background-size: 200% 100%;
+  animation: stripe-slide 2s linear infinite;
+}

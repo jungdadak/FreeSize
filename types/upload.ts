@@ -26,6 +26,7 @@ export interface ImageProcessingOptions {
   };
 }
 export interface APIResponse<T = unknown> {
+  message?: string;
   success: boolean;
   data?: T;
   error?: string;

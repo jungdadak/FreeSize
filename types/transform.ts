@@ -1,23 +1,48 @@
 // types/transform.ts
+export type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
+export type ProcessingStage = 'initial' | 'processing' | 'completed';
+export type ProcessingStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed';
 
-export interface ProcessStatus {
-  stage: 'uploading' | 'processing' | 'completed' | 'failed';
-  progress?: number;
-  error?: string;
-  resultUrl?: string; // Added result URL
+export interface ProcessingStatusType {
+  stage: ProcessingStage;
+  progress: number;
+  totalItems: number;
+  currentItemIndex: number;
+  currentFile: string;
 }
 
-export interface UncropOptions {
-  aspectRatio?: '1:1' | '1:2' | '2:1';
-  // Add other fields if necessary
+export interface ProcessingResult {
+  originalFileName: string;
+  success: boolean;
+  message: string;
 }
 
-export interface SpringErrorResponse {
-  error?: string;
-  // Add other fields if necessary
+export interface ProcessingSummaryProps {
+  totalCount: number;
+  successCount: number;
+  failureCount: number;
+  processingResults: ProcessingResult[];
+  loading: boolean;
+  onDownloadAll: () => void;
+  processingStatus?: ProcessingStatusType; // 기존 ProcessingSummary가 이걸 사용하고 있다면 유지
+  status?: {
+    // 새로운 status 프로퍼티
+    text: string;
+    percentage: number;
+  };
 }
-export interface ProcessingMethod {
-  id: 'uncrop' | 'upscale';
-  label: string;
-  enabled: boolean;
+
+// Spring API 응답 타입
+export interface SpringApiResponse {
+  code: number;
+  message: string;
+  url: string;
 }
+
+// 상수
+export const POLLING_INTERVAL = 3000;
+export const MAX_RETRIES = 5;

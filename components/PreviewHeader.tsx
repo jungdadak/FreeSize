@@ -1,6 +1,5 @@
 import { FileImage, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 
 interface HeaderProps {
   totalFiles: number;
@@ -23,14 +22,6 @@ export default function Header({ totalFiles, totalSize }: HeaderProps) {
 
         {/* Badges Container */}
         <div className="flex flex-wrap items-center gap-2 lg:gap-6">
-          {/* Polling Test Page Badge */}
-          <Badge
-            variant="outline"
-            className="px-3 lg:px-4 py-1 lg:py-2 bg-cyan-800 border border-gray-200 text-yellow-300 text-sm whitespace-nowrap"
-          >
-            <Link href="/polling">폴링 테스트페이지</Link>
-          </Badge>
-
           {/* Files Badge */}
           <Badge
             variant="secondary"

@@ -94,12 +94,12 @@ export default async function RootLayout({
       >
         <Providers dehydratedState={dehydrate(queryClient)}>
           <div className="flex flex-col min-h-screen">
-            <Navbar className="fixed top-0 left-0 right-0 z-50" />{' '}
-            {/* Navbar를 fixed로 변경 */}
-            <ClientMaintenanceBanner />
+            <Navbar className="fixed top-0 left-0 right-0 z-[9999]" />
+            <div className="fixed top-16  z-[9999] w-full ">
+              <ClientMaintenanceBanner />
+            </div>
             <main className="flex-grow pb-16 mt-16">
               {' '}
-              {/* mt-16을 여기로 이동 */}
               <div className="container mx-auto">
                 {children}
                 <ToastContainer />

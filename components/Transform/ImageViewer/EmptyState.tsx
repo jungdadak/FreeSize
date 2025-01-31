@@ -1,3 +1,5 @@
+//componenets/Transform/ImageViewer/EmptyState.tsx
+
 type EmptyStateProps = {
   message: string;
 };

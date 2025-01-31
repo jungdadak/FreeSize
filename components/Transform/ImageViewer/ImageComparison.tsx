@@ -1,3 +1,5 @@
+//componenets/Transform/ImageViewer/ImageComparison.tsx
+
 import React from 'react';
 import Image from 'next/image';
 import { Maximize2, Minimize2, X } from 'lucide-react';

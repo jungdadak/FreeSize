@@ -1,165 +1,169 @@
-// hooks/transform/useImageProcessing.ts
-import { useState, useEffect, useRef } from 'react';
-import { ProcessingStatusType, SpringAPIResponse } from '@/types';
-import { useFileUpload } from '@/services/uploadService';
+//hooks/transform/useImageProcessing.ts
+import { useState, useEffect } from 'react';
 import { TransformData, useTransformStore } from '@/store/transformStore';
+import {
+  ProcessingStatusType,
+  ProcessingResult,
+  MAX_RETRIES,
+  POLLING_INTERVAL,
+} from '@/types/transform';
 
 export function useImageProcessing(transformData: TransformData[] | null) {
-  const processedRef = useRef(false);
+  const updateImageStatus = useTransformStore(
+    (state) => state.updateImageStatus
+  );
   const [processingStatus, setProcessingStatus] =
     useState<ProcessingStatusType>({
-      stage: 'uploading',
+      stage: 'initial',
+      progress: 0,
       totalItems: 0,
       currentItemIndex: 0,
       currentFile: '',
-      progress: 0,
     });
+  const [loading, setLoading] = useState(false);
 
-  const [processingResults, setProcessingResults] = useState<
-    Array<{
-      originalFileName: string;
-      success: boolean;
-      message: string;
-    }>
-  >([]);
-
-  const [loading, setLoading] = useState(true);
-  const uploadService = useFileUpload();
-  const updateProcessedImage = useTransformStore(
-    (state) => state.updateProcessedImage
-  );
+  // 초기 처리 요청을 한 번만 보내기 위한 상태
+  const [isProcessingStarted, setIsProcessingStarted] = useState(false);
 
   useEffect(() => {
-    if (!transformData || processedRef.current) return;
-
-    processedRef.current = true;
+    if (!transformData?.length || isProcessingStarted) return;
 
     const processImages = async () => {
       try {
-        // Upload Phase
-        const uploadPromises = transformData.map(async (item, index) => {
-          setProcessingStatus((prev) => ({
-            ...prev,
-            currentItemIndex: index,
-            currentFile: item.originalFileName,
-            progress: (index / transformData.length) * 100,
-          }));
-
-          if (!item.file) return null;
-
-          try {
-            const uploadResult = await uploadService.mutateAsync([item.file]);
-            return {
-              originalFileName: item.originalFileName,
-              s3Key: uploadResult[0].s3Key,
-              method: item.processingOptions?.method || '',
-              file: item.file,
-              width: item.width,
-              height: item.height,
-              ...(item.processingOptions?.method === 'uncrop' && {
-                aspectRatio: item.processingOptions.aspectRatio,
-              }),
-              ...(item.processingOptions?.method === 'upscale' && {
-                factor: item.processingOptions.factor,
-              }),
-              ...(item.processingOptions?.method === 'square' && {
-                targetRes: item.processingOptions.targetRes,
-              }),
-            };
-          } catch (error) {
-            console.error(`Failed to upload ${item.originalFileName}:`, error);
-            return null;
-          }
-        });
-
-        const uploadResults = await Promise.all(uploadPromises);
-        const validUploads = uploadResults.filter(Boolean);
-
-        // Processing Phase
-        setProcessingStatus((prev) => ({
-          ...prev,
+        setLoading(true);
+        setIsProcessingStarted(true);
+        setProcessingStatus({
           stage: 'processing',
-          currentFile: '이미지 처리 중...',
           progress: 0,
-        }));
-
-        const formData = new FormData();
-        validUploads.forEach((item, index) => {
-          if (!item) return;
-
-          formData.append(`file_${index}`, item.file);
-          formData.append(`method_${index}`, item.method);
-
-          const metadata = {
-            s3Key: item.s3Key,
-            width: item.width,
-            height: item.height,
-            ...(item.method === 'uncrop' && {
-              aspectRatio: item.aspectRatio,
-            }),
-            ...(item.method === 'upscale' && {
-              factor: item.factor,
-            }),
-            ...(item.method === 'square' && {
-              targetRes: item.targetRes,
-            }),
-          };
-
-          formData.append(`metadata_${index}`, JSON.stringify(metadata));
+          totalItems: transformData.length,
+          currentItemIndex: 0,
+          currentFile: transformData[0].originalFileName,
         });
 
+        // 초기 처리 요청
+        const formData = new FormData();
+        transformData.forEach((item, index) => {
+          formData.append(`file_${index}`, item.file);
+          formData.append(`method_${index}`, item.processingOptions.method);
+          formData.append(
+            `metadata_${index}`,
+            JSON.stringify({
+              s3Key: item.s3Key,
+              originalFileName: item.originalFileName,
+              width: item.dimensions.width,
+              height: item.dimensions.height,
+              ...item.processingOptions,
+            })
+          );
+        });
+
+        console.log('Sending initial request...');
         const response = await fetch('/api/image/transform', {
           method: 'POST',
           body: formData,
         });
 
-        if (!response.ok) {
-          throw new Error('Image processing failed');
-        }
+        if (!response.ok) throw new Error('Failed to start processing');
 
-        const result = (await response.json()) as SpringAPIResponse;
+        const { results } = await response.json();
+        console.log('Received process IDs:', results);
 
-        if (result.results) {
-          // 단일 상태 업데이트로 모든 결과 처리
-          const newResults = result.results.map((processedResult, index) => ({
-            originalFileName: transformData[index].originalFileName,
-            success: processedResult.success,
-            message: processedResult.message || 'Unknown error',
-          }));
+        // 폴링 시작
+        for (const [index, result] of results.entries()) {
+          if (!result.processId) continue;
 
-          // 모든 처리 결과를 한 번에 설정
-          setProcessingResults(newResults);
-
-          // 성공한 이미지들을 일괄 처리
-          result.results.forEach((processedResult, index) => {
-            if (processedResult.success && processedResult.resized_img) {
-              updateProcessedImage(
-                transformData[index].originalFileName,
-                `data:image/jpeg;base64,${processedResult.resized_img}`
-              );
-            }
-          });
-
-          // 상태 업데이트를 마지막에 한 번만 수행
           setProcessingStatus((prev) => ({
             ...prev,
-            stage: 'completed',
-            progress: 100,
+            currentItemIndex: index,
+            currentFile: result.originalFileName,
+          }));
+
+          updateImageStatus(result.originalFileName, { status: 'processing' });
+
+          // 개별 이미지 폴링
+          let attempts = 0;
+          let isComplete = false;
+
+          while (!isComplete && attempts < MAX_RETRIES) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, POLLING_INTERVAL)
+            );
+            attempts++;
+
+            try {
+              const statusResponse = await fetch('/api/image/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ processId: result.processId }),
+              });
+
+              if (!statusResponse.ok) throw new Error('Status check failed');
+
+              const statusData = await statusResponse.json();
+              console.log(`Status check ${attempts}:`, statusData);
+
+              if (statusData.code === 0) {
+                updateImageStatus(result.originalFileName, {
+                  status: 'completed',
+                  processedImageUrl: statusData.imageUrl,
+                });
+                isComplete = true;
+              }
+            } catch (error) {
+              console.error('Polling error:', error);
+              if (attempts >= MAX_RETRIES) {
+                updateImageStatus(result.originalFileName, {
+                  status: 'failed',
+                  error: 'Failed to process image',
+                });
+                isComplete = true;
+              }
+            }
+          }
+
+          const progress = ((index + 1) / results.length) * 100;
+          setProcessingStatus((prev) => ({
+            ...prev,
+            progress: Math.round(progress),
           }));
         }
+
+        setProcessingStatus((prev) => ({
+          ...prev,
+          stage: 'completed',
+          progress: 100,
+        }));
       } catch (error) {
-        console.error('Image processing failed:', error);
+        console.error('Processing failed:', error);
+        transformData.forEach((item) => {
+          updateImageStatus(item.originalFileName, {
+            status: 'failed',
+            error: 'Failed to start processing',
+          });
+        });
+        setProcessingStatus((prev) => ({
+          ...prev,
+          stage: 'completed',
+          progress: 100,
+        }));
       } finally {
         setLoading(false);
       }
     };
 
     processImages();
-  }, [transformData, uploadService, updateProcessedImage]);
+  }, [transformData, updateImageStatus, isProcessingStarted]);
+
+  const currentResults: ProcessingResult[] =
+    transformData?.map((item) => ({
+      originalFileName: item.originalFileName,
+      success: item.status === 'completed',
+      message: item.error || '',
+    })) || [];
 
   return {
     processingStatus,
-    processingResults,
+    processingResults: currentResults,
     loading,
   };
 }

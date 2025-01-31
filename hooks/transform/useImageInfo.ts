@@ -1,7 +1,9 @@
+// hooks/transform/useImageInfo.ts
 import { useState, useEffect } from 'react';
-import { ImageInfo, ProcessingStatusType } from '@/types';
-import { getImageDimensions, getFileSize } from '@/utils/image';
 import { TransformData } from '@/store/transformStore';
+import { ProcessingStatusType } from '@/types/transform';
+import { getImageDimensions, getFileSize } from '@/utils/image';
+import { ImageInfo } from '@/types';
 
 export function useImageInfo(
   transformData: TransformData[] | null,
@@ -19,6 +21,7 @@ export function useImageInfo(
         await Promise.all(
           transformData.map(async (item) => {
             try {
+              // 원본 이미지 정보 로드
               const [originalDimensions, originalSize] = await Promise.all([
                 getImageDimensions(item.previewUrl),
                 getFileSize(item.previewUrl),
@@ -29,6 +32,7 @@ export function useImageInfo(
                 size: originalSize,
               };
 
+              // 처리된 이미지가 있는 경우 해당 정보도 로드
               if (item.processedImageUrl) {
                 const [processedDimensions, processedSize] = await Promise.all([
                   getImageDimensions(item.processedImageUrl),

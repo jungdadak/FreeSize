@@ -135,15 +135,22 @@ export function useFileProcessing() {
 
     try {
       const transformDataArray = files.map((file) => ({
-        s3Key: '',
-        processingOptions: file.processingOption,
-        originalFileName: file.file.name,
-        previewUrl: file.previewUrl,
-        width: file.dimensions?.width || 800,
-        height: file.dimensions?.height || 600,
         file: file.file,
+        previewUrl: file.previewUrl,
+        originalFileName: file.file.name,
+        s3Key: `${Date.now()}-${file.file.name}`,
+        dimensions: {
+          // 올바른 dimensions 구조로 변경
+          width: file.dimensions?.width || 800,
+          height: file.dimensions?.height || 600,
+        },
+        processingOptions: file.processingOption || {
+          method: 'upscale',
+          factor: 'x1',
+        },
       }));
 
+      console.log('Setting transform data:', transformDataArray); // 데이터 확인용 로그
       useTransformStore.getState().setTransformData(transformDataArray);
       router.push('/transform/result');
     } catch (error) {
