@@ -14,7 +14,7 @@ import {
   ImageViewer,
 } from '@/components/Transform';
 import { formatDimensions } from '@/utils/image';
-import { useResetStoresOnUnmount } from '@/hooks/resetAllStores';
+// import { useResetStoresOnUnmount } from '@/hooks/resetAllStores';
 
 export default function TransformPage() {
   const router = useRouter();
@@ -28,8 +28,6 @@ export default function TransformPage() {
   const { processingStatus, processingResults, loading } =
     useImageProcessing(transformData);
   const { imageInfos } = useImageInfo(transformData, processingStatus);
-
-  useResetStoresOnUnmount();
 
   // 디버깅을 위한 상태 모니터링
   useEffect(() => {

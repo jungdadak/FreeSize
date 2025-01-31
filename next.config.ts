@@ -12,11 +12,6 @@ const nextConfig: NextConfig = {
   // SWC 최소화 설정 (Next.js 15.1.4 기준)
 
   // 콘솔 로그 제거 설정
-  compiler: {
-    removeConsole: {
-      exclude: ['error', 'warn'], // 'error'와 'warn' 로그는 유지, 나머지는 제거
-    },
-  },
 
   // 이미지 최적화 설정
   images: {
