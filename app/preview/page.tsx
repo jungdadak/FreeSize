@@ -12,6 +12,7 @@ import Header from '@/components/PreviewHeader';
 import ActionButtons from '@/components/ActionButtons';
 import SwiperNavigation from '@/components/Swiper/SwiperNavigation';
 import CompactUpload from '@/components/CompactUpload';
+import GlobalProcessingOptions from '@/components/GlobalProcessingOptions';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -23,7 +24,6 @@ export default function PreviewPage() {
     totalSize,
     uploadStatus,
     addFile,
-
     stage,
     handleMethodToggle,
     handleAspectRatioChange,
@@ -39,6 +39,8 @@ export default function PreviewPage() {
       <Header totalFiles={totalFiles} totalSize={totalSize} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <GlobalProcessingOptions />
+
         <Card className="border-0 bg-white text-gray-900 dark:bg-[#141414] dark:text-gray-100 dark:backdrop-blur-sm">
           <CardContent className="p-0">
             {files.length > 0 ? (
