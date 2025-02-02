@@ -12,7 +12,7 @@ interface ProcessingOptionsProps {
   fileItem: FileItem;
   index: number;
   onMethodToggle: (index: number, methodId: string) => void;
-  onAspectRatioChange: (index: number, ratio: '1:1' | '1:2' | '2:1') => void;
+  onAspectRatioChange: (index: number, ratio: '1:2' | '2:1') => void;
   onUpscaleFactorChange: (index: number, factor: 'x1' | 'x2' | 'x4') => void;
   onSquareTargetResChange: (
     index: number,
@@ -78,7 +78,7 @@ export default function ProcessingOptions({
                 <RadioGroup
                   value={fileItem.processingOption.aspectRatio}
                   onValueChange={(value: string) =>
-                    onAspectRatioChange(index, value as '1:1' | '1:2' | '2:1')
+                    onAspectRatioChange(index, value as '1:2' | '2:1')
                   }
                   className="space-y-2"
                 >

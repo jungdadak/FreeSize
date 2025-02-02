@@ -7,7 +7,7 @@ const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
 interface TransformMetadata {
   taskId: string;
   originalFileName: string; // processStore 저장용
-  aspectRatio?: '1:1' | '1:2' | '2:1';
+  aspectRatio?: '1:2' | '2:1';
   factor?: 'x1' | 'x2' | 'x4';
   targetRes?: '1024' | '1568' | '2048';
 }
