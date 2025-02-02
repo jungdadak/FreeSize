@@ -24,7 +24,7 @@ export default function SwiperNavigation({
   }, [swiper]);
 
   return (
-    <div className="flex justify-center items-center gap-4 mt-8">
+    <div className="flex justify-center items-center gap-4 mt-2">
       <button
         onClick={() => swiper.slidePrev()}
         disabled={activeIndex === 0}

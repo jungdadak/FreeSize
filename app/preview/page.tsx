@@ -1,7 +1,6 @@
 'use client';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileItem } from '@/store/fileStore';
 import { useFileProcessing } from '@/hooks/useFileProcessing';
@@ -35,7 +34,7 @@ export default function PreviewPage() {
   } = useFileProcessing();
 
   return (
-    <div className="min-h-screen py-12 transition-colors duration-300 bg-white text-gray-900 dark:bg-[#141414]">
+    <div className="min-h-screen pt-20 transition-colors duration-300 bg-white text-gray-900 dark:bg-[#141414]">
       <Header totalFiles={totalFiles} totalSize={totalSize} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,12 +44,7 @@ export default function PreviewPage() {
           <CardContent className="p-0">
             {files.length > 0 ? (
               <>
-                <Swiper
-                  modules={[Pagination]}
-                  pagination={{ clickable: true }}
-                  spaceBetween={40}
-                  slidesPerView={1}
-                >
+                <Swiper spaceBetween={40} slidesPerView={1}>
                   {files.map((fileItem: FileItem, index: number) => (
                     <SwiperSlide key={index} className="p-4">
                       <div className="flex flex-col lg:flex-row gap-8">
@@ -73,27 +67,26 @@ export default function PreviewPage() {
                             />
                           </div>
                           <SwiperNavigation totalFiles={totalFiles} />
-                          <div className="mt-6">
+                          <div className="mt-1">
                             <CompactUpload
                               onFileAdd={addFile}
                               className="w-full"
                             />
-                          </div>
+                          </div>{' '}
+                          <ActionButtons
+                            onCancel={handleCancel}
+                            onProcess={handleProcess}
+                            stage={stage}
+                            uploadStatus={uploadStatus}
+                            hasValidOptions={files.every(
+                              (file) => file.processingOption !== null
+                            )}
+                          />
                         </div>
                       </div>
                     </SwiperSlide>
                   ))}
                 </Swiper>
-
-                <ActionButtons
-                  onCancel={handleCancel}
-                  onProcess={handleProcess}
-                  stage={stage}
-                  uploadStatus={uploadStatus}
-                  hasValidOptions={files.every(
-                    (file) => file.processingOption !== null
-                  )}
-                />
               </>
             ) : (
               <div className="p-8">

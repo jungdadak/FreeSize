@@ -34,11 +34,13 @@ export default function ProcessingOptions({
 
   return (
     <div className="w-full space-y-6">
-      <div className="rounded-xl p-6" style={{ backgroundColor: '#141414' }}>
-        <h3 className="text-lg font-semibold mb-4">처리 옵션</h3>
+      <div className="rounded-xl p-6 dark:bg-[#141414] bg-white shadow-lg">
+        <h3 className="text-lg font-semibold mb-1 text-black dark:text-white">
+          처리 옵션
+        </h3>
 
         <Tabs
-          value={fileItem.processingOption?.method || 'uncrop'}
+          value={fileItem.processingOption?.method}
           onValueChange={handleTabChange}
           defaultValue="uncrop"
           className="w-full"
