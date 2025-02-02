@@ -18,7 +18,7 @@ export interface ProcessMethod {
 
 export interface ImageProcessingOptions {
   uncrop?: {
-    aspectRatio: string; // "1:1"과 같은 형식
+    aspectRatio: string; // "1:2"
   };
   upscale?: {
     width: number;
