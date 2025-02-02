@@ -1,6 +1,5 @@
 // types/transform.ts
 export type ProcessingMethod = 'upscale' | 'uncrop' | 'square';
-export type ProcessingStage = 'initial' | 'processing' | 'completed';
 export type ProcessingStatus =
   | 'pending'
   | 'processing'
@@ -13,12 +12,6 @@ export interface ProcessingStatusType {
   totalItems: number;
   currentItemIndex: number;
   currentFile: string;
-}
-
-export interface ProcessingResult {
-  originalFileName: string;
-  success: boolean;
-  message: string;
 }
 
 export interface ProcessingSummaryProps {
@@ -44,5 +37,22 @@ export interface SpringApiResponse {
 }
 
 // 상수
-export const POLLING_INTERVAL = 3000;
+export const POLLING_INTERVAL = 2000;
 export const MAX_RETRIES = 5;
+
+// types/transform.ts
+export type ProcessingStage = 'initial' | 'processing' | 'completed' | 'error';
+
+export interface ProcessingStatusType {
+  stage: ProcessingStage;
+  progress: number;
+  totalItems: number;
+  currentItemIndex: number;
+  currentFile: string;
+}
+
+export interface ProcessingResult {
+  originalFileName: string;
+  success: boolean;
+  message?: string;
+}

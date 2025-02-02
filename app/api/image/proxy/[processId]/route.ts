@@ -1,39 +1,69 @@
+// app/api/image/proxy/[processId]/route.ts
 import { NextResponse } from 'next/server';
 import { processStore } from '@/lib/process-store';
 
-export async function GET(request: Request) {
+interface ProcessInfo {
+  s3Url: string;
+  originalFileName: string;
+  method: string;
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: { processId: Promise<string> } }
+) {
   try {
-    // ✅ Next.js 15+에서는 request.nextUrl.pathname을 사용하여 processId를 추출해야 함
-    const processId = request.url.split('/').pop(); // URL에서 processId 추출
+    const processId = await params.processId;
+
     if (!processId) {
-      console.error('❌ Missing process ID in request');
+      console.error('❌ No processId provided in URL');
       return new NextResponse('Not found', { status: 404 });
     }
 
     console.log(`🔍 Fetching process info for ID: ${processId}`);
+    const processInfo = processStore.get(processId) as ProcessInfo | undefined;
 
-    const processInfo = processStore.get(processId);
     if (!processInfo) {
-      console.error(`❌ Process ID ${processId} not found`);
+      console.error(`❌ Process ID ${processId} not found in store`);
       return new NextResponse('Not found', { status: 404 });
     }
 
+    console.log(`📥 Fetching image from S3: ${processInfo.originalFileName}`);
     const response = await fetch(processInfo.s3Url);
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch image from S3: ${response.status}`);
+      console.error(
+        `❌ Failed to fetch from S3: ${response.status} ${response.statusText}`
+      );
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
 
     const blob = await response.blob();
-    console.log(`✅ Successfully fetched image for ID: ${processId}`);
+    console.log(
+      `✅ Successfully fetched image for: ${processInfo.originalFileName}`
+    );
+
+    // 파일명을 UTF-8로 인코딩
+    const encodedFilename = encodeURIComponent(processInfo.originalFileName);
 
     return new NextResponse(blob, {
       headers: {
         'Content-Type': response.headers.get('Content-Type') || 'image/jpeg',
         'Cache-Control': 'public, max-age=31536000',
+        'Content-Disposition': `inline; filename*=UTF-8''${encodedFilename}`,
+        'Access-Control-Expose-Headers': 'Content-Disposition',
       },
     });
   } catch (error) {
-    console.error(`🚨 Proxy error for ID: ${request.url}`, error);
-    return new NextResponse('Error fetching image', { status: 500 });
+    console.error(
+      `🚨 Proxy error for processId: ${await params.processId}`,
+      error
+    );
+    return new NextResponse('Error fetching image', {
+      status: 500,
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
   }
 }

@@ -21,8 +21,6 @@ export function useImageProcessing(transformData: TransformData[] | null) {
       currentFile: '',
     });
   const [loading, setLoading] = useState(false);
-
-  // 초기 처리 요청을 한 번만 보내기 위한 상태
   const [isProcessingStarted, setIsProcessingStarted] = useState(false);
 
   useEffect(() => {
@@ -40,15 +38,17 @@ export function useImageProcessing(transformData: TransformData[] | null) {
           currentFile: transformData[0].originalFileName,
         });
 
-        // 초기 처리 요청
-        const formData = new FormData();
+        const processFormData = new FormData();
         transformData.forEach((item, index) => {
-          formData.append(`file_${index}`, item.file);
-          formData.append(`method_${index}`, item.processingOptions.method);
-          formData.append(
+          processFormData.append(`file_${index}`, item.file);
+          processFormData.append(
+            `method_${index}`,
+            item.processingOptions.method
+          );
+          processFormData.append(
             `metadata_${index}`,
             JSON.stringify({
-              s3Key: item.s3Key,
+              taskId: item.s3Key, // s3Key를 taskId로 사용
               originalFileName: item.originalFileName,
               width: item.dimensions.width,
               height: item.dimensions.height,
@@ -57,18 +57,19 @@ export function useImageProcessing(transformData: TransformData[] | null) {
           );
         });
 
-        console.log('Sending initial request...');
-        const response = await fetch('/api/image/transform', {
+        console.log('Sending transform request with data:', processFormData);
+        const transformResponse = await fetch('/api/image/transform', {
           method: 'POST',
-          body: formData,
+          body: processFormData,
         });
 
-        if (!response.ok) throw new Error('Failed to start processing');
+        if (!transformResponse.ok) {
+          throw new Error('Transform request failed');
+        }
 
-        const { results } = await response.json();
-        console.log('Received process IDs:', results);
+        const { results } = await transformResponse.json();
+        console.log('Received transform results:', results);
 
-        // 폴링 시작
         for (const [index, result] of results.entries()) {
           if (!result.processId) continue;
 
@@ -78,9 +79,11 @@ export function useImageProcessing(transformData: TransformData[] | null) {
             currentFile: result.originalFileName,
           }));
 
-          updateImageStatus(result.originalFileName, { status: 'processing' });
+          updateImageStatus(result.originalFileName, {
+            status: 'processing',
+            pollingUrl: `/api/image/status/${result.processId}`,
+          });
 
-          // 개별 이미지 폴링
           let attempts = 0;
           let isComplete = false;
 
@@ -97,10 +100,15 @@ export function useImageProcessing(transformData: TransformData[] | null) {
                 body: JSON.stringify({ processId: result.processId }),
               });
 
-              if (!statusResponse.ok) throw new Error('Status check failed');
+              if (!statusResponse.ok) {
+                throw new Error('Status check failed');
+              }
 
               const statusData = await statusResponse.json();
-              console.log(`Status check ${attempts}:`, statusData);
+              console.log(
+                `Status check for ${result.originalFileName}:`,
+                statusData
+              );
 
               if (statusData.code === 0) {
                 updateImageStatus(result.originalFileName, {
@@ -108,17 +116,30 @@ export function useImageProcessing(transformData: TransformData[] | null) {
                   processedImageUrl: statusData.imageUrl,
                 });
                 isComplete = true;
+              } else if (statusData.code === 1) {
+                // 아직 처리 중
+                continue;
+              } else {
+                // 처리 실패
+                throw new Error(statusData.message || 'Processing failed');
               }
             } catch (error) {
               console.error('Polling error:', error);
               if (attempts >= MAX_RETRIES) {
                 updateImageStatus(result.originalFileName, {
                   status: 'failed',
-                  error: 'Failed to process image',
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : 'Failed to process image',
                 });
-                isComplete = true;
+                break;
               }
             }
+          }
+
+          if (!isComplete && attempts >= MAX_RETRIES) {
+            console.warn(`Processing timed out for ${result.originalFileName}`);
           }
 
           const progress = ((index + 1) / results.length) * 100;
@@ -138,12 +159,15 @@ export function useImageProcessing(transformData: TransformData[] | null) {
         transformData.forEach((item) => {
           updateImageStatus(item.originalFileName, {
             status: 'failed',
-            error: 'Failed to start processing',
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Failed to process image',
           });
         });
         setProcessingStatus((prev) => ({
           ...prev,
-          stage: 'completed',
+          stage: 'error',
           progress: 100,
         }));
       } finally {
@@ -154,7 +178,7 @@ export function useImageProcessing(transformData: TransformData[] | null) {
     processImages();
   }, [transformData, updateImageStatus, isProcessingStarted]);
 
-  const currentResults: ProcessingResult[] =
+  const processingResults: ProcessingResult[] =
     transformData?.map((item) => ({
       originalFileName: item.originalFileName,
       success: item.status === 'completed',
@@ -163,7 +187,7 @@ export function useImageProcessing(transformData: TransformData[] | null) {
 
   return {
     processingStatus,
-    processingResults: currentResults,
+    processingResults,
     loading,
   };
 }

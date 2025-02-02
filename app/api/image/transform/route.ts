@@ -1,7 +1,16 @@
+// app/api/image/transform/route.ts
 import { NextResponse } from 'next/server';
 import { processStore } from '@/lib/process-store';
 
 const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
+
+interface TransformMetadata {
+  taskId: string;
+  originalFileName: string; // processStore 저장용
+  aspectRatio?: '1:1' | '1:2' | '2:1';
+  factor?: 'x1' | 'x2' | 'x4';
+  targetRes?: '1024' | '1568' | '2048';
+}
 
 async function sendToSpringApi(formData: FormData, method: string) {
   try {
@@ -15,10 +24,6 @@ async function sendToSpringApi(formData: FormData, method: string) {
     const response = await fetch(`${SPRING_API_BASE}/staging/${method}`, {
       method: 'POST',
       body: formData,
-      headers: {
-        // Content-Type은 FormData를 사용할 때 자동으로 설정되므로 수동으로 설정하지 않습니다.
-        Accept: 'application/json',
-      },
     });
 
     console.log(`📤 Spring API Response (${method}): ${response.status}`);
@@ -41,25 +46,27 @@ async function sendToSpringApi(formData: FormData, method: string) {
 
 function appendMetadataToFormData(
   formData: FormData,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any,
+  metadata: TransformMetadata,
   method: string
 ): void {
+  // taskId는 필수
+  formData.append('taskId', metadata.taskId);
+
+  // 메서드별 필수 파라미터
   switch (method) {
     case 'uncrop':
-      if (metadata.aspectRatio) {
-        formData.append('targetRatio', metadata.aspectRatio);
-      }
+      if (!metadata.aspectRatio)
+        throw new Error('aspectRatio is required for uncrop');
+      formData.append('targetRatio', metadata.aspectRatio);
       break;
     case 'square':
-      if (metadata.targetRes) {
-        formData.append('targetRes', metadata.targetRes);
-      }
+      if (!metadata.targetRes)
+        throw new Error('targetRes is required for square');
+      formData.append('targetRes', metadata.targetRes);
       break;
     case 'upscale':
-      if (metadata.factor) {
-        formData.append('upscaleRatio', metadata.factor.replace('x', ''));
-      }
+      if (!metadata.factor) throw new Error('factor is required for upscale');
+      formData.append('upscaleRatio', metadata.factor.replace('x', ''));
       break;
   }
 }
@@ -78,27 +85,20 @@ export async function POST(request: Request) {
       const index = Math.floor(i / 3);
       const method = formData.get(`method_${index}`) as string;
       const file = formData.get(`file_${index}`) as File;
-      const metadata = JSON.parse(formData.get(`metadata_${index}`) as string);
+      const metadata = JSON.parse(
+        formData.get(`metadata_${index}`) as string
+      ) as TransformMetadata;
 
       console.log(
         `🔹 Processing image [${metadata.originalFileName}] using method: ${method}`
       );
 
-      const newFormData = new FormData();
-      newFormData.append('file', file);
-      newFormData.append('taskId', metadata.s3Key);
-      newFormData.append('originalFileName', metadata.originalFileName);
-      newFormData.append('width', metadata.width.toString());
-      newFormData.append('height', metadata.height.toString());
-
-      appendMetadataToFormData(newFormData, metadata, method);
-      console.log('-------------HERE');
-      for (const x of newFormData.entries()) {
-        console.log(x);
-      }
+      const springFormData = new FormData();
+      springFormData.append('file', file);
 
       try {
-        const springResponse = await sendToSpringApi(newFormData, method);
+        appendMetadataToFormData(springFormData, metadata, method);
+        const springResponse = await sendToSpringApi(springFormData, method);
 
         if (springResponse.code === 0) {
           const processId = `${Date.now()}-${Math.random()
@@ -130,23 +130,23 @@ export async function POST(request: Request) {
             `❌ Image processing failed: ${metadata.originalFileName} - ${springResponse.message}`
           );
         }
-      } catch {
+      } catch (error) {
+        console.error(
+          `🚨 Failed to process ${metadata.originalFileName}:`,
+          error
+        );
         results.push({
           processId: '',
           originalFileName: metadata.originalFileName,
-          error: 'Processing failed',
+          error: error instanceof Error ? error.message : 'Processing failed',
         });
-
-        console.error(
-          `🚨 Processing request failed for: ${metadata.originalFileName}`
-        );
       }
     }
 
     console.log(`📤 Sending response back to client`, results);
     return NextResponse.json({ success: true, results });
   } catch (error) {
-    console.error(`🚨 Error processing transform request`, error);
+    console.error(`🚨 Error in transform API route:`, error);
     return NextResponse.json(
       { success: false, message: 'Processing failed' },
       { status: 500 }

@@ -1,13 +1,16 @@
+//hooks/useFileProcessing.ts
 import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFileStore } from '@/store/fileStore';
 import { useTransformStore } from '@/store/transformStore';
 import { useUploadStore } from '@/store/uploadStore';
+import { useFileUpload } from '@/services/uploadService';
 import { getImageDimensions } from '@/utils/image';
 
 export function useFileProcessing() {
   const router = useRouter();
   const { stage } = useUploadStore();
+  const fileUpload = useFileUpload();
   const {
     files,
     uploadStatus,
@@ -16,10 +19,9 @@ export function useFileProcessing() {
     setProcessingOption,
     updateFile,
     removeFile,
-    addFile, // 노출시킬 addFile 메소드
+    addFile,
   } = useFileStore();
 
-  // 파일 갯수와 크기 계산
   const totalFiles = useMemo(() => files.length, [files]);
   const totalSize = useMemo(
     () =>
@@ -31,8 +33,6 @@ export function useFileProcessing() {
   );
 
   useEffect(() => {
-    // 파일이 없을 때 리다이렉트하는 로직 제거
-    // 대신 이미지 차원 계산 로직만 유지
     files.forEach(async (fileItem, index) => {
       if (!fileItem.dimensions) {
         try {
@@ -47,7 +47,6 @@ export function useFileProcessing() {
     });
   }, [files, updateFile]);
 
-  // 메서드 토글 핸들러
   const handleMethodToggle = (fileIndex: number, methodId: string) => {
     const { processingOption } = files[fileIndex];
     if (processingOption?.method === methodId) {
@@ -66,7 +65,6 @@ export function useFileProcessing() {
     }
   };
 
-  // 비율 변경 핸들러
   const handleAspectRatioChange = (
     fileIndex: number,
     ratio: '1:1' | '1:2' | '2:1'
@@ -77,7 +75,6 @@ export function useFileProcessing() {
     }
   };
 
-  // 업스케일 팩터 변경 핸들러
   const handleUpscaleFactorChange = (
     fileIndex: number,
     factor: 'x1' | 'x2' | 'x4'
@@ -88,7 +85,6 @@ export function useFileProcessing() {
     }
   };
 
-  // Square 타겟 해상도 변경 핸들러
   const handleSquareTargetResChange = (
     fileIndex: number,
     targetRes: '1024' | '1568' | '2048'
@@ -99,19 +95,16 @@ export function useFileProcessing() {
     }
   };
 
-  // 파일 제거 핸들러
   const handleRemoveFile = (index: number) => {
     removeFile(index);
   };
 
-  // 취소 핸들러
   const handleCancel = () => {
     resetFileStore();
     useUploadStore.getState().reset();
     router.push('/');
   };
 
-  // 처리 시작 핸들러
   const handleProcess = async () => {
     if (files.length === 0) {
       setUploadStatus({
@@ -134,13 +127,17 @@ export function useFileProcessing() {
     }
 
     try {
-      const transformDataArray = files.map((file) => ({
+      // 1. S3 업로드 실행
+      const filesToUpload = files.map((item) => item.file);
+      const uploadResults = await fileUpload.mutateAsync(filesToUpload);
+
+      // 2. TransformData 생성
+      const transformDataArray = files.map((file, index) => ({
         file: file.file,
         previewUrl: file.previewUrl,
         originalFileName: file.file.name,
-        s3Key: `${Date.now()}-${file.file.name}`,
+        s3Key: uploadResults[index].s3Key,
         dimensions: {
-          // 올바른 dimensions 구조로 변경
           width: file.dimensions?.width || 800,
           height: file.dimensions?.height || 600,
         },
@@ -150,7 +147,7 @@ export function useFileProcessing() {
         },
       }));
 
-      console.log('Setting transform data:', transformDataArray); // 데이터 확인용 로그
+      console.log('Setting transform data:', transformDataArray);
       useTransformStore.getState().setTransformData(transformDataArray);
       router.push('/transform/result');
     } catch (error) {
@@ -167,8 +164,7 @@ export function useFileProcessing() {
     totalFiles,
     totalSize,
     uploadStatus,
-    addFile, // addFile 메소드 노출
-
+    addFile,
     stage,
     handleMethodToggle,
     handleAspectRatioChange,

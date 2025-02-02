@@ -1,4 +1,3 @@
-// app/transform/result/page.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -14,7 +13,6 @@ import {
   ImageViewer,
 } from '@/components/Transform';
 import { formatDimensions } from '@/utils/image';
-// import { useResetStoresOnUnmount } from '@/hooks/resetAllStores';
 
 export default function TransformPage() {
   const router = useRouter();
@@ -29,15 +27,11 @@ export default function TransformPage() {
     useImageProcessing(transformData);
   const { imageInfos } = useImageInfo(transformData, processingStatus);
 
-  // 디버깅을 위한 상태 모니터링
-  useEffect(() => {
-    console.log('Current processing status:', processingStatus);
-    console.log('Processing results:', processingResults);
-  }, [processingStatus, processingResults]);
-
+  // 리다이렉트 처리
   useEffect(() => {
     if (!transformData) {
-      router.push('/');
+      console.log('No transform data available, redirecting to home');
+      router.push('/preview');
     }
   }, [transformData, router]);
 
@@ -54,12 +48,10 @@ export default function TransformPage() {
   const successfulData = useMemo(
     () =>
       transformData?.filter((item) => {
-        // 1. 검색어 필터링
         const matchesSearch = item.originalFileName
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
 
-        // 2. 성공한 결과에서 매칭 확인
         const isSuccessful = successfulResults.some(
           (result) => result.originalFileName === item.originalFileName
         );
@@ -114,9 +106,10 @@ export default function TransformPage() {
     }
   };
 
-  // 로딩 상태나 에러 상태 표시
+  // 상태 텍스트 가져오기
   const getStatusText = () => {
     if (loading) return '처리 중...';
+    if (processingStatus.stage === 'error') return '오류 발생';
     if (failedResults.length > 0)
       return `실패: ${failedResults.length}개 이미지`;
     if (successfulResults.length > 0)
@@ -135,10 +128,7 @@ export default function TransformPage() {
           totalCount={processingResults.length}
           successCount={successfulResults.length}
           failureCount={failedResults.length}
-          // 실패 항목만 → failedResults
-          // 성공 항목만 → successfulResults
-          // 모두 → processingResults
-          processingResults={processingResults} // <-- 전체를 넘김
+          processingResults={processingResults}
           loading={loading}
           status={{
             text: getStatusText(),
