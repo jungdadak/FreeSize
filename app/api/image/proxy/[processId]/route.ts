@@ -10,10 +10,12 @@ interface ProcessInfo {
 
 export async function GET(
   request: Request,
-  { params }: { params: { processId: Promise<string> } }
+  context: { params: Promise<{ processId: string }> }
 ) {
   try {
-    const processId = await params.processId;
+    // 먼저 전체 params 객체를 await하여 가져옵니다.
+    const paramsData = await context.params;
+    const processId = paramsData.processId;
 
     if (!processId) {
       console.error('❌ No processId provided in URL');
@@ -43,7 +45,7 @@ export async function GET(
       `✅ Successfully fetched image for: ${processInfo.originalFileName}`
     );
 
-    // 파일명을 UTF-8로 인코딩
+    // 파일명을 UTF-8로 인코딩합니다.
     const encodedFilename = encodeURIComponent(processInfo.originalFileName);
 
     return new NextResponse(blob, {
@@ -55,15 +57,10 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error(
-      `🚨 Proxy error for processId: ${await params.processId}`,
-      error
-    );
+    console.error(`🚨 Proxy error for processId`, error);
     return new NextResponse('Error fetching image', {
       status: 500,
-      headers: {
-        'Content-Type': 'text/plain',
-      },
+      headers: { 'Content-Type': 'text/plain' },
     });
   }
 }

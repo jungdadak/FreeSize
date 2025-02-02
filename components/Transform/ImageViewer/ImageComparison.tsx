@@ -185,7 +185,7 @@ export function ImageComparison({
       </div>
 
       {isUpscale && isZoomed && (
-        <div className="fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
+        <div className=" pt-32 fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
           <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
               Comparison View
