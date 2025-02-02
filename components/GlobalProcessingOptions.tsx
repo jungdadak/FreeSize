@@ -74,7 +74,7 @@ export default function GlobalProcessingOptions() {
     <div className="w-full space-y-6">
       <div className="rounded-xl p-6" style={{ backgroundColor: '#141414' }}>
         <h3 className="text-lg font-semibold mb-4 text-white">
-          전체 적용 옵션
+          일괄 옵션 적용
         </h3>
         <Tabs
           value={globalMethod}
@@ -183,20 +183,20 @@ export default function GlobalProcessingOptions() {
           </div>
         </Tabs>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-between">
+          {' '}
+          {appliedSetting && (
+            <div className="mt-4 text-sm text-gray-300">
+              Now : <span className="text-yellow-400">{appliedSetting}</span> ✅
+            </div>
+          )}
           <Button
             onClick={handleApply}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="px-4 py-2 hover:bg-indigo-800 bg-indigo-600 text-white rounded"
           >
             전체 적용
           </Button>
         </div>
-
-        {appliedSetting && (
-          <div className="mt-4 text-sm text-gray-300">
-            전체 적용됨: {appliedSetting}
-          </div>
-        )}
       </div>
     </div>
   );
