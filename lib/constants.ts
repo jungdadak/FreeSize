@@ -9,7 +9,7 @@ export interface ProcessingMethod {
 }
 
 export interface AspectRatio {
-  id: '1:1' | '1:2' | '2:1';
+  id: '1:2' | '2:1';
   label: string;
 }
 
@@ -25,7 +25,6 @@ export const PROCESSING_METHODS: ProcessingMethod[] = [
 ];
 
 export const ASPECT_RATIOS = [
-  { id: '1:1' as const, label: '1:1 Square' },
   { id: '1:2' as const, label: '1:2 Portrait' },
   { id: '2:1' as const, label: '2:1 Landscape' },
 ];

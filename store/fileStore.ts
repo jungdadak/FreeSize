@@ -11,7 +11,7 @@ export interface FileItem {
 }
 
 export type ProcessingOption =
-  | { method: 'uncrop'; aspectRatio: '1:1' | '1:2' | '2:1' }
+  | { method: 'uncrop'; aspectRatio: '1:2' | '2:1' }
   | { method: 'upscale'; factor: 'x1' | 'x2' | 'x4' }
   | { method: 'square'; targetRes: '1024' | '1568' | '2048' }; // Placeholder for future implementation
 

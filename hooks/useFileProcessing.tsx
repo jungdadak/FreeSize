@@ -55,7 +55,7 @@ export function useFileProcessing() {
       if (methodId === 'uncrop') {
         setProcessingOption(fileIndex, {
           method: 'uncrop',
-          aspectRatio: '1:1',
+          aspectRatio: '1:2',
         });
       } else if (methodId === 'upscale') {
         setProcessingOption(fileIndex, { method: 'upscale', factor: 'x1' });
@@ -65,10 +65,7 @@ export function useFileProcessing() {
     }
   };
 
-  const handleAspectRatioChange = (
-    fileIndex: number,
-    ratio: '1:1' | '1:2' | '2:1'
-  ) => {
+  const handleAspectRatioChange = (fileIndex: number, ratio: '1:2' | '2:1') => {
     const currentOption = files[fileIndex].processingOption;
     if (currentOption?.method === 'uncrop') {
       setProcessingOption(fileIndex, { ...currentOption, aspectRatio: ratio });

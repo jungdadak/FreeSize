@@ -90,7 +90,7 @@ export interface BaseUploadResult {
 
 export interface UncropResult extends BaseUploadResult {
   method: 'uncrop';
-  aspectRatio: '1:1' | '1:2' | '2:1';
+  aspectRatio: '1:2' | '2:1';
 }
 
 export interface UpscaleResult extends BaseUploadResult {
