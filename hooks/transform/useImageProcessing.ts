@@ -48,7 +48,7 @@ export function useImageProcessing(transformData: TransformData[] | null) {
           processFormData.append(
             `metadata_${index}`,
             JSON.stringify({
-              taskId: item.s3Key, // s3Key를 taskId로 사용
+              taskId: item.s3Key.replace(/\.[^/.]+$/, ''), // s3Key를 taskId로 사용
               originalFileName: item.originalFileName,
               width: item.dimensions.width,
               height: item.dimensions.height,

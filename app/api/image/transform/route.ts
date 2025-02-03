@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         appendMetadataToFormData(springFormData, metadata, method);
         const springResponse = await sendToSpringApi(springFormData, method);
 
-        if (springResponse.code === 0) {
+        if (springResponse.code === 200) {
           const processId = `${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}`;
