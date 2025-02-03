@@ -39,9 +39,6 @@ export interface ProcessingResult {
   imageUrl?: string; // 안전한 URL
 }
 
-export const POLLING_INTERVAL = 3000;
-export const MAX_RETRIES = 5;
-
 export interface ImageInfo {
   dimensions: {
     width: number;
