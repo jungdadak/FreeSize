@@ -56,8 +56,9 @@ export default function TransformPage() {
           (result) => result.originalFileName === item.originalFileName
         );
 
-        return matchesSearch && isSuccessful && !!item.processedImageUrl;
+        return matchesSearch && isSuccessful;
       }) ?? [],
+
     [transformData, searchQuery, successfulResults]
   );
 

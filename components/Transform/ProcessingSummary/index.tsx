@@ -3,10 +3,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import {
-  ProcessingStatusType,
-  ProcessingSummaryProps,
-} from '@/types/transform';
+import { ProcessingSummaryProps } from '@/types/transform';
 import { StatusCounters } from './StatusCounters';
 import { ProcessingResultsList } from './ProcessingResultsList';
 
@@ -21,8 +18,7 @@ export function ProcessingSummary({
   loading,
   onDownloadAll,
   status,
-  processingStatus,
-}: ProcessingSummaryProps & { processingStatus?: ProcessingStatusType }) {
+}: ProcessingSummaryProps) {
   return (
     <Card className="bg-white dark:bg-black shadow-lg border-gray-200 dark:border-gray-800 mb-4">
       {/* 헤더 */}
@@ -58,21 +54,7 @@ export function ProcessingSummary({
 
         {/* === 여기만 오버레이로 덮어씌움 === */}
         <div className="relative">
-          {loading && (
-            <QueueOverlay
-              currentFile={processingStatus?.currentFile}
-              progress={processingStatus?.progress}
-              totalFiles={processingStatus?.totalItems}
-              currentIndex={processingStatus?.currentItemIndex}
-              stage={
-                processingStatus?.stage === 'completed'
-                  ? 'completed' // 'downloading'에서 'completed'로 변경
-                  : processingStatus?.stage === 'initial'
-                  ? 'uploading'
-                  : 'processing'
-              }
-            />
-          )}
+          {loading && <QueueOverlay />}
           <ProcessingResultsList results={processingResults} />
         </div>
         {/* ================================== */}
