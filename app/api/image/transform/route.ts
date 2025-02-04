@@ -6,10 +6,22 @@ const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
 const S3_BUCKET_URL = process.env.SPRING_S3_BUCKET_URL;
 // 불완전한 s3url을 완전한 s3주소로 바꿔주는 함수 정의 ^^
 function getFullS3Url(partialUrl: string): string {
-  if (partialUrl.startsWith('http')) {
+  // S3_BUCKET_URL이 없으면 원본 반환
+  if (!S3_BUCKET_URL) {
     return partialUrl;
   }
 
+  // 이미 완전한 S3 URL인 경우
+  if (partialUrl.includes('.s3.ap-northeast-2.amazonaws.com')) {
+    return partialUrl;
+  }
+
+  // freesize-0080 도메인을 S3 버킷 URL로 교체
+  if (partialUrl.includes('freesize-0080')) {
+    return partialUrl.replace('https://freesize-0080', S3_BUCKET_URL);
+  }
+
+  // 그 외의 경우 (상대 경로 등)
   const cleanUrl = partialUrl.startsWith('/')
     ? partialUrl.substring(1)
     : partialUrl;
