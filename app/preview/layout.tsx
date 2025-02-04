@@ -40,5 +40,5 @@ export default function PreviewLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return { children };
+  return <> {children}</>;
 }
