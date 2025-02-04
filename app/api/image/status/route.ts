@@ -1,7 +1,7 @@
 // app/api/image/status/route.ts
 import { NextResponse } from 'next/server';
 import { processStore } from '@/lib/process-store';
-
+import { API_TIMEOUT } from '@/types/transform';
 interface ProcessInfo {
   s3Url: string;
   originalFileName: string;
@@ -9,10 +9,21 @@ interface ProcessInfo {
 }
 
 async function checkS3Url(url: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
   try {
-    const response = await fetch(url, { method: 'HEAD' });
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('S3 check timed out');
+      return false;
+    }
     console.error('Error checking S3 URL:', error);
     return false;
   }

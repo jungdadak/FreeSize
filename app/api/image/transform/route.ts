@@ -3,7 +3,18 @@ import { NextResponse } from 'next/server';
 import { processStore } from '@/lib/process-store';
 
 const SPRING_API_BASE = process.env.SPRING_API_URL || 'http://localhost:8080';
+const S3_BUCKET_URL = process.env.SPRING_S3_BUCKET_URL;
+// 불완전한 s3url을 완전한 s3주소로 바꿔주는 함수 정의 ^^
+function getFullS3Url(partialUrl: string): string {
+  if (partialUrl.startsWith('http')) {
+    return partialUrl;
+  }
 
+  const cleanUrl = partialUrl.startsWith('/')
+    ? partialUrl.substring(1)
+    : partialUrl;
+  return `${S3_BUCKET_URL}/${cleanUrl}`;
+}
 interface TransformMetadata {
   taskId: string;
   originalFileName: string; // processStore 저장용
@@ -104,9 +115,10 @@ export async function POST(request: Request) {
           const processId = `${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}`;
+          const fullS3Url = getFullS3Url(springResponse.url);
 
           processStore.set(processId, {
-            s3Url: springResponse.url,
+            s3Url: fullS3Url,
             originalFileName: metadata.originalFileName,
             method,
           });

@@ -36,9 +36,11 @@ export interface SpringApiResponse {
   url: string;
 }
 
-// 상수
-export const POLLING_INTERVAL = 2000;
-export const MAX_RETRIES = 5;
+// 폴링 로직 관련 파라미터 지정
+export const POLLING_INTERVAL =
+  Number(process.env.NEXT_PUBLIC_POLLING_INTERVAL) || 3000;
+export const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 4000;
+export const MAX_RETRIES = Number(process.env.NEXT_PUBLIC_MAX_RETRIES) || 4;
 
 // types/transform.ts
 export type ProcessingStage = 'initial' | 'processing' | 'completed' | 'error';

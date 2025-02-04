@@ -86,18 +86,30 @@ export function useImageProcessing(transformData: TransformData[] | null) {
 
           let attempts = 0;
           let isComplete = false;
+          let currentRequest: AbortController | null = null;
 
           while (!isComplete && attempts < MAX_RETRIES) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, POLLING_INTERVAL)
-            );
-            attempts++;
+            // 이전 요청이 있다면 중단
+            if (currentRequest) {
+              currentRequest.abort();
+            }
+
+            // 새로운 요청 컨트롤러 생성
+            currentRequest = new AbortController();
 
             try {
+              // 먼저 대기
+              await new Promise((resolve) =>
+                setTimeout(resolve, POLLING_INTERVAL)
+              );
+              attempts++;
+
+              // 상태 체크 요청
               const statusResponse = await fetch('/api/image/status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ processId: result.processId }),
+                signal: currentRequest.signal,
               });
 
               if (!statusResponse.ok) {
@@ -123,8 +135,14 @@ export function useImageProcessing(transformData: TransformData[] | null) {
                 // 처리 실패
                 throw new Error(statusData.message || 'Processing failed');
               }
-            } catch (error) {
+            } catch (error: unknown) {
               console.error('Polling error:', error);
+              if (error instanceof Error) {
+                if (error.name === 'AbortError') {
+                  console.log('Request aborted for new polling attempt');
+                  continue;
+                }
+              }
               if (attempts >= MAX_RETRIES) {
                 updateImageStatus(result.originalFileName, {
                   status: 'failed',
@@ -134,6 +152,13 @@ export function useImageProcessing(transformData: TransformData[] | null) {
                       : 'Failed to process image',
                 });
                 break;
+              }
+            } finally {
+              if (isComplete || attempts >= MAX_RETRIES) {
+                // 마지막 시도거나 완료되었을 때만 currentRequest를 정리
+                if (currentRequest) {
+                  currentRequest = null;
+                }
               }
             }
           }
@@ -154,7 +179,7 @@ export function useImageProcessing(transformData: TransformData[] | null) {
           stage: 'completed',
           progress: 100,
         }));
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Processing failed:', error);
         transformData.forEach((item) => {
           updateImageStatus(item.originalFileName, {
