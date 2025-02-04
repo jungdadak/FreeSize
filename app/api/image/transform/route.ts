@@ -115,13 +115,19 @@ export async function POST(request: Request) {
           const processId = `${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}`;
+          console.log('Original S3 URL:', springResponse.url);
+
           const fullS3Url = getFullS3Url(springResponse.url);
+          console.log('Transformed S3 URL:', fullS3Url);
+          console.log('S3_BUCKET_URL env:', S3_BUCKET_URL); // 환경변수 확인
 
           processStore.set(processId, {
             s3Url: fullS3Url,
             originalFileName: metadata.originalFileName,
             method,
           });
+          const storedInfo = processStore.get(processId);
+          console.log('Stored process info:', storedInfo);
 
           results.push({
             processId,
