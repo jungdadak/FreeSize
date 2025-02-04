@@ -36,6 +36,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://freesize.vercel.app',
   },
+  other: {
+    'google-adsense-account': 'ca-pub-7791415629101587',
+  },
 };
 
 const jsonLd = {
