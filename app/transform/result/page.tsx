@@ -27,7 +27,7 @@ export default function TransformPage() {
     useImageProcessing(transformData);
   const { imageInfos } = useImageInfo(transformData, processingStatus);
 
-  // 리다이렉트 처리
+  // transformData 없으면 리다이렉트
   useEffect(() => {
     if (!transformData) {
       console.log('No transform data available, redirecting to home');
@@ -58,7 +58,6 @@ export default function TransformPage() {
 
         return matchesSearch && isSuccessful;
       }) ?? [],
-
     [transformData, searchQuery, successfulResults]
   );
 
@@ -118,6 +117,11 @@ export default function TransformPage() {
     return '대기 중';
   };
 
+  // 새 핸들러: onImageSelect 시 새로운 객체 참조 생성
+  const handleImageSelect = (image: TransformData) => {
+    setSelectedImage({ ...image });
+  };
+
   if (!transformData) {
     return null;
   }
@@ -141,7 +145,7 @@ export default function TransformPage() {
         <ImageQueue
           filteredData={successfulData}
           selectedImage={selectedImage}
-          onImageSelect={setSelectedImage}
+          onImageSelect={handleImageSelect}
         />
 
         {selectedImage && (
