@@ -44,7 +44,7 @@ async function sendToSpringApi(formData: FormData, method: string) {
       console.log(`🔹 ${key}:`, value);
     }
 
-    const response = await fetch(`${SPRING_API_BASE}/staging/${method}`, {
+    const response = await fetch(`${SPRING_API_BASE}/${method}`, {
       method: 'POST',
       body: formData,
     });
