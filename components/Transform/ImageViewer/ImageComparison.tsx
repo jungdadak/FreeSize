@@ -66,13 +66,15 @@ export function ImageComparison({
 							</h2>
 							<div className="rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
 								<div className="relative w-full aspect-square md:aspect-auto md:h-96">
-									<Image
-										src={selectedImage.previewUrl}
-										alt="원본 이미지"
-										fill
-										priority
-										className="object-contain"
-									/>
+									{selectedImage.processedImageUrl && (
+										// 일반 img 태그 사용
+										<img
+											src={selectedImage.processedImageUrl}
+											alt="처리된 이미지"
+											className="object-contain w-full h-full"
+											key={selectedImage.processedImageUrl}
+										/>
+									)}
 								</div>
 							</div>
 							<div className="mt-3 space-y-1">
