@@ -102,7 +102,7 @@ export function ImageComparison({
 							</h2>
 							<div className="rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 w-full">
 								<div className="relative w-full aspect-square md:aspect-auto md:h-96">
-									<img
+									<Image
 										src={selectedImage.processedImageUrl}
 										alt="처리된 이미지"
 										className="object-contain w-full h-full"
