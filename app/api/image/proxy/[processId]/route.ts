@@ -30,6 +30,9 @@ export async function GET(
       console.error(`❌ Process ID ${processId} not found in store`);
       return new NextResponse('Not found', { status: 404 });
     }
+
+    console.log(`📝 원본 S3 URL: ${processInfo.s3Url}`);
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
     console.log(`📥 Fetching image from S3: ${processInfo.originalFileName}`);
