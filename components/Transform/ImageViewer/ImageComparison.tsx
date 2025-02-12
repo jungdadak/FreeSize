@@ -105,9 +105,7 @@ export function ImageComparison({
 									<Image
 										src={selectedImage.processedImageUrl}
 										alt="처리된 이미지"
-										fill
-										priority
-										className="object-contain"
+										className="object-contain w-full h-full"
 										key={selectedImage.processedImageUrl}
 									/>
 								</div>
