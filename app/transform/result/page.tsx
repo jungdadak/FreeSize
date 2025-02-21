@@ -67,9 +67,10 @@ export default function TransformPage() {
     if (
       processingStatus.stage === 'completed' &&
       successfulData.length > 0 &&
-      (!selectedImage || !successfulData.includes(selectedImage))
+      selectedImage && // selectedImage가 있을 때만 검사
+      !successfulData.includes(selectedImage)
     ) {
-      setSelectedImage(successfulData[0]);
+      setSelectedImage(null);
     }
   }, [processingStatus.stage, successfulData, selectedImage]);
 
