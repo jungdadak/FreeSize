@@ -5,6 +5,7 @@ import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFileStore, FileItem } from '@/store/fileStore';
 import { FILE_CONFIG } from '@/configs/file.config';
+import { slugifyFile } from '@/utils/sanitizeFilename';
 
 export default function DragDrop() {
   const [dragActive, setDragActive] = useState<boolean>(false);
@@ -74,17 +75,20 @@ export default function DragDrop() {
       setError(`File "${file.name}" is already selected.`);
       return;
     }
+    console.log('Original filename:', file.name); // 변환된 파일명
 
-    const previewUrl = URL.createObjectURL(file);
+    const sluggedFile = slugifyFile(file); // 파일명 변환
+    console.log('Slugified filename:', sluggedFile.name); // 변환된 파일명
+
+    const previewUrl = URL.createObjectURL(sluggedFile);
     const fileItem: FileItem = {
-      file,
+      file: sluggedFile, // 변환된 파일 사용
       previewUrl,
-      dimensions: null, // To be updated later
-      processingOption: null, // Initialize as null
+      dimensions: null,
+      processingOption: null,
     };
     addFile(fileItem);
   };
-
   /**
    * Handle file drop event
    */

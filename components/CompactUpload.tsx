@@ -3,6 +3,7 @@ import { Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { FILE_CONFIG } from '@/configs/file.config';
 import type { FileItem } from '@/store/fileStore';
+import { slugifyFile } from '@/utils/sanitizeFilename';
 
 interface CompactUploadProps {
   onFileAdd: (file: FileItem) => void;
@@ -35,10 +36,14 @@ const CompactUpload: React.FC<CompactUploadProps> = ({
 
   const processFile = (file: File) => {
     if (!validateFile(file)) return;
+    console.log('Original filename:', file.name); // 원본 파일명
 
-    const previewUrl = URL.createObjectURL(file);
+    const sluggedFile = slugifyFile(file); // 파일명 변환
+    console.log('Slugified filename:', sluggedFile.name); // 변환된 파일명
+
+    const previewUrl = URL.createObjectURL(sluggedFile);
     const fileItem: FileItem = {
-      file,
+      file: sluggedFile, // 변환된 파일 사용
       previewUrl,
       dimensions: null,
       processingOption: null,
